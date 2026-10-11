@@ -22,6 +22,23 @@ Een project-type kiest per maat met `fluid({min}, {max})` of hij meegroeit. De b
 
 Ook voor tekst verandert er iets. Medium gaat nu van 16px naar 20px tussen 360px en 1440px. Eerder was dat 16px naar 20,5px tot ongeveer 1730px. Icons, checkboxes en radio's volgen de font-size, dus die schalen vanzelf mee. In de Figma-export staat de spacing nu in de `dsn/Density`-collection, met een mobile- en een desktop-mode op 360px en 1440px.
 
+Componenten met een vaste maat die bij de tekst hoort, schalen nu mee:
+
+- **Spinner**: `--dsn-spinner-size` is `icon.size.md` (24 → 30px), de grote variant is het dubbele (48 → 60px).
+- **File**: `--dsn-file-media-size` is twee keer `icon.size.md` (48 → 60px).
+- **DotBadge**: de dot is een derde van `icon.size.md` (8 → 10px), de offsets zijn `space.block.sm` en `space.inline.sm`.
+- **Card**: het icoon in de afbeeldingsplaceholder krijgt het nieuwe token `--dsn-card-image-placeholder-icon-size` (`icon.size.2xl`, 40 → 50px). Eerder stond die maat hardcoded in de CSS.
+- **Popover en PopoverMenu**: de afstand tot de trigger is `space.block.sm` en `space.inline.sm` in plaats van een hardcoded 0.25rem.
+- **DateInput en TimeInput**: de 1px padding die Chromium boven en onder de datum- en tijdvelden zet, is weg. Op een brede viewport werden deze velden daardoor 2px hoger dan een gewone text input.
+
+Bewust vast gebleven:
+
+- het klikdoel van 3rem en de small button van 2.5rem;
+- de ruimte voor password managers;
+- layoutbreedtes, zoals Drawer, Popover, ModalDialog, Grid, Page en de minimale card-breedte;
+- de logohoogte, de dikte van de ProgressBar en de navbar-hoogte van PageHeader;
+- de scrollschaduwen, onderstrepingen en randen.
+
 ### Figma-plugin: lettertypes laden vóór de variables
 
 Een wissel van lettertype in een bestaande Figma-bibliotheek brak de variables-import af met "unloaded font". Een font-family-variable die al aan tekstlagen hangt, zet die lagen bij een nieuwe waarde direct om, en Figma weigert dat zolang het lettertype niet geladen is. De plugin laadt nu eerst elke familie uit de font-family-variables, in al haar stijlen, en schrijft daarna de waardes. Een familie die Figma niet kent levert een waarschuwing op in plaats van een fout. De mock van de smoke test stelt dezelfde eis.

@@ -2,14 +2,14 @@
   "dsn": {
     "spinner": {
       "size": {
-        "$value": "1.5rem",
+        "$value": "{dsn.icon.size.md}",
         "$type": "dimension",
-        "$description": "Diameter van de spinner (24px)"
+        "$description": "Diameter van de spinner — gelijk aan icon.size.md, schaalt mee met de fluid type scale (24–30px)"
       },
       "size-large": {
-        "$value": "3rem",
+        "$value": "calc({dsn.icon.size.md} * 2)",
         "$type": "dimension",
-        "$description": "Grote variant — diameter van de spinner (48px)"
+        "$description": "Grote variant — twee keer icon.size.md, schaalt mee met de fluid type scale (48–60px)"
       },
       "stroke-width": {
         "$value": "{dsn.border.width.medium}",

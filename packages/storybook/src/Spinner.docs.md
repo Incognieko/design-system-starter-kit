@@ -86,8 +86,8 @@ De rotatie-animatie respecteert `prefers-reduced-motion: reduce`. Bij verminderd
 
 | Token                        | Beschrijving                                                             |
 | ---------------------------- | ------------------------------------------------------------------------ |
-| `--dsn-spinner-size`         | Diameter van de standaard spinner (24px)                                 |
-| `--dsn-spinner-size-large`   | Diameter van de grote variant (48px)                                     |
+| `--dsn-spinner-size`         | Diameter van de standaard spinner (24–30px, fluid)                       |
+| `--dsn-spinner-size-large`   | Diameter van de grote variant (48–60px, fluid)                           |
 | `--dsn-spinner-stroke-width` | Lijndikte van de boog — delegeert naar `--dsn-border-width-medium` (2px) |
 | `--dsn-spinner-color`        | Kleur van de draaiende boog (accent-1)                                   |
 | `--dsn-spinner-track-color`  | Achtergrondkleur van de cirkelbaan (neutral-bg-subtle)                   |

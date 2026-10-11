@@ -97,9 +97,9 @@
       },
       "media": {
         "size": {
-          "$value": "3rem",
+          "$value": "calc({dsn.icon.size.md} * 2)",
           "$type": "dimension",
-          "$description": "Vaste grootte van het media-vlak (48px) — vierkant voor zowel icoon als preview"
+          "$description": "Grootte van het media-vlak — vierkant voor zowel icoon als preview. Twee keer icon.size.md, zodat het meeschaalt met de tekst ernaast (48–60px)"
         },
         "border-radius": {
           "$value": "{dsn.border.radius.sm}",

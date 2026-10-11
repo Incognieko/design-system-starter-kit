@@ -183,26 +183,26 @@
  */
 .dsn-popover-wrapper .dsn-popover--placement-bottom {
   position: absolute;
-  inset-block-start: calc(100% + 0.25rem);
+  inset-block-start: calc(100% + var(--dsn-space-block-sm));
   inset-inline-start: 0;
 }
 
 .dsn-popover-wrapper .dsn-popover--placement-top {
   position: absolute;
-  inset-block-end: calc(100% + 0.25rem);
+  inset-block-end: calc(100% + var(--dsn-space-block-sm));
   inset-inline-start: 0;
 }
 
 .dsn-popover-wrapper .dsn-popover--placement-end {
   position: absolute;
   inset-block-start: 0;
-  inset-inline-start: calc(100% + 0.25rem);
+  inset-inline-start: calc(100% + var(--dsn-space-inline-sm));
 }
 
 .dsn-popover-wrapper .dsn-popover--placement-start {
   position: absolute;
   inset-block-start: 0;
-  inset-inline-end: calc(100% + 0.25rem);
+  inset-inline-end: calc(100% + var(--dsn-space-inline-sm));
 }
 
 /* ===== Header ===== */
