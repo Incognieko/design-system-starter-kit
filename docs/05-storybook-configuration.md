@@ -144,6 +144,10 @@ const preview: Preview = {
       toolbar: {
         items: [
           { value: 'default', title: 'Default (Fluid)' },
+          {
+            value: 'default-fixed-space',
+            title: 'Default (Fluid text, fixed space)',
+          },
           { value: 'information-dense', title: 'Information Dense (Fixed)' },
         ],
       },
@@ -721,7 +725,7 @@ pnpm --filter storybook exec tsc --noEmit 2>&1 | grep "TS2304\|TS6133"
 
 - **Theme**: Switch between themes (start, wireframe)
 - **Mode**: Switch between light/dark modes
-- **Density**: Switch between fluid/fixed typography
+- **Density**: Switch between fluid text and spacing (`default`), fluid text with fixed spacing (`default-fixed-space`) and fixed sizes (`information-dense`)
 
 ### Addons
 

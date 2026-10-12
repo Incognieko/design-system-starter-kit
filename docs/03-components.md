@@ -1368,7 +1368,7 @@ Brengt consistente verticale ruimte aan tussen directe child-elementen via `flex
 - SVG-gebaseerde cirkelvormige laadindicator voor onbepaalde wachttijden
 - `role="status"` op de container kondigt de laadtoestand aan bij screenreaders
 - `hideLabel` verbergt het label visueel via `dsn-visually-hidden` maar behoudt toegankelijkheid
-- Twee groottes: `default` (24px, label rechts) en `large` (48px, label gecentreerd onder)
+- Twee groottes: `default` (gelijk aan `icon.size.md`, 24–30px fluid, label rechts) en `large` (twee keer zo groot, 48–60px, label gecentreerd onder)
 - `prefers-reduced-motion: reduce`: rotatie vervangen door subtiel pulseren
 
 **HTML klassen:**
@@ -1454,7 +1454,7 @@ Brengt consistente verticale ruimte aan tussen directe child-elementen via `flex
 - Interactieve variant (stretched-link techniek) wanneer `href` aanwezig is en `onDelete` ontbreekt — zelfde patroon als Card
 - Hover/active/focus op de gehele component via `:hover` / `:has(.dsn-file__name--stretched:active)` / `:has(.dsn-file__name--stretched:focus-visible)`
 - Bestandsnaam als `<a class="dsn-link">` (gestyled als link, bold) wanneer `href` aanwezig; anders `<span>`
-- Media-vlak: vast 3rem×3rem vierkant met bestandsicoon (`file-description.svg` of `photo.svg`) of afbeeldingspreview (`object-fit: cover`)
+- Media-vlak: vierkant van twee keer `icon.size.md` (48–60px, schaalt mee met de fluid schaal) met bestandsicoon (`file-description.svg` of `photo.svg`) of afbeeldingspreview (`object-fit: cover`)
 - Verwijder-knop in LinkButton-stijl: `dsn-link dsn-link-button dsn-link--size-default`
 - Fade-in animatie op Spinner, check-icoon en verwijder-knop bij verschijnen; respecteert `prefers-reduced-motion`
 

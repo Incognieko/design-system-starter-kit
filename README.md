@@ -92,7 +92,7 @@ pnpm --filter @dsn-starter-kit/design-tokens watch
 # Start Storybook in development mode
 pnpm dev
 
-# Run tests (2121 tests across 85 test suites)
+# Run tests (2233 tests across 88 test suites)
 pnpm test
 
 # Run tests in watch mode
@@ -156,8 +156,8 @@ Design tokens are the foundation of the system. They are organized in a three-ti
 
 Token categories:
 
-- **Typography** - Font families, sizes, weights, line heights (fluid scale)
-- **Spacing** - 5 concepts (block, inline, text, column, row)
+- **Typography** - Font families, sizes, weights, line heights (fluid scale: min at 360px, max at 1440px)
+- **Spacing** - 5 concepts (block, inline, text, column, row), fluid in the `default` density
 - **Colors** - 10 semantic color sets with light/dark themes
 - **Sizing** - Icon sizes coupled to typography (fluid, scales with viewport)
 - **Borders** - Radius and width values
@@ -166,7 +166,7 @@ Token categories:
 - **Form Controls** - Border, spacing, typography, and color tokens for form elements (7 states)
 - **Form Components** - 26 form components, covered by 22 token files (EmailInput, NumberInput, TelephoneInput, FormFieldset and FormFieldLegend define none of their own and reuse the shared `form-control` tokens)
 
-All tokens (~1380 per configuration) are built with [Style Dictionary](https://amzn.github.io/style-dictionary/) and exported as:
+All tokens (~1540 per configuration) are built with [Style Dictionary](https://amzn.github.io/style-dictionary/) and exported as:
 
 - CSS Custom Properties
 - SCSS Variables
@@ -449,7 +449,7 @@ Comprehensive documentation is available in the `/docs` folder:
 
 - **Pre-commit hooks** via Husky + lint-staged (ESLint + Prettier)
 - **Type checking** across all packages (`pnpm type-check`)
-- **2121 tests** covering React components, Web Components, and utilities
+- **2233 tests** covering React components, Web Components, and utilities
 - **CI/CD** via GitHub Actions (lint, type-check, test, build)
 
 ## Tech Stack

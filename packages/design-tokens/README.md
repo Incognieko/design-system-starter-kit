@@ -6,22 +6,26 @@ Design tokens for the design system: the single source of truth for colors, typo
 
 Tokens are organized in a **three-axis configuration model**:
 
-| Axis             | Values                         | Affects                                                  |
-| ---------------- | ------------------------------ | -------------------------------------------------------- |
-| **Theme**        | `start`, `wireframe`, ...      | All tokens (typography, spacing, borders, focus, colors) |
-| **Mode**         | `light`, `dark`                | Only color tokens                                        |
-| **Project Type** | `default`, `information-dense` | Only font-size tokens                                    |
+| Axis             | Values                                                | Affects                                                  |
+| ---------------- | ----------------------------------------------------- | -------------------------------------------------------- |
+| **Theme**        | `start`, `wireframe`, ...                             | All tokens (typography, spacing, borders, focus, colors) |
+| **Mode**         | `light`, `dark`                                       | Only color tokens                                        |
+| **Project Type** | `default`, `default-fixed-space`, `information-dense` | Which scales are fluid: font sizes and spacing           |
 
 This creates a matrix of configurations: **Theme × Mode × Project Type**.
 
 ```
 start-light-default
+start-light-default-fixed-space
 start-light-information-dense
 start-dark-default
+start-dark-default-fixed-space
 start-dark-information-dense
 wireframe-light-default
+wireframe-light-default-fixed-space
 wireframe-light-information-dense
 wireframe-dark-default
+wireframe-dark-default-fixed-space
 wireframe-dark-information-dense
 ```
 
@@ -29,7 +33,7 @@ wireframe-dark-information-dense
 
 - **Theme**: Defines the visual identity/branding. Different clients or products can have their own theme while sharing the same component library.
 - **Mode**: Light/dark color schemes. Users can switch modes without changing the theme.
-- **Project Type**: Typography density. Information-dense applications (dashboards, data tables) use fixed font sizes, while marketing sites use fluid typography.
+- **Project Type**: Density. `default` lets font sizes and spacing grow with the viewport, `default-fixed-space` only the font sizes, and `information-dense` (dashboards, data tables) keeps both fixed.
 
 ## Folder Structure
 
@@ -37,7 +41,7 @@ wireframe-dark-information-dense
 src/tokens/
 ├── themes/
 │   ├── start/                    # Default theme
-│   │   ├── base.json             # Typography (excl font-size), spacing, sizing, borders, focus
+│   │   ├── base.json             # Typography, min/max font sizes and spacing, sizing, borders, focus
 │   │   ├── colors-light.json     # Light mode colors
 │   │   └── colors-dark.json      # Dark mode colors
 │   └── wireframe/                # Wireframe/prototype theme
@@ -46,9 +50,11 @@ src/tokens/
 │       └── colors-dark.json      # Inverted grayscale
 ├── project-types/
 │   ├── default/
-│   │   └── typography.json       # Fluid clamp() font-sizes
+│   │   ├── typography.json       # fluid() font sizes (default-fixed-space uses only this file)
+│   │   └── space.json            # fluid() spacing
 │   └── information-dense/
-│       └── typography.json       # Fixed font-sizes
+│       ├── typography.json       # Fixed font sizes (the min values)
+│       └── grid.json             # Compact grid gutter
 └── components/
     └── form-control.json         # Component-level semantic tokens
 ```
@@ -57,8 +63,9 @@ src/tokens/
 
 ### In Theme Base (`themes/*/base.json`)
 
-- **Typography**: Font families, weights, line heights
-- **Spacing**: 5 concepts (block, inline, text, column, row)
+- **Viewport**: `dsn.viewport.min-inline-size` (360px) and `max-inline-size` (1440px), the range of the fluid scale
+- **Typography**: Font families, weights, line heights, and per font size a min and max value (`dsn.text.font-size.min.*` / `max.*`)
+- **Spacing**: 5 concepts (block, inline, text, column, row), each size with a min and max value (`dsn.space.*.min.*` / `max.*`). The size itself (`dsn.space.block.md`) refers to the min value, so it is fixed unless a project type makes it fluid
 - **Sizing**: Icon sizes (coupled to typography)
 - **Borders**: Radius and width values
 - **Focus States**: Accessible focus indicators
@@ -71,11 +78,19 @@ src/tokens/
   - Each with: bg, border, color × document, subtle, default, hover, active
   - Plus inverse variants for dark backgrounds
 
-### In Project Type (`project-types/*/typography.json`)
+### In Project Type (`project-types/*/`)
 
-- **Font Sizes**: sm, md, lg, xl, 2xl, 3xl, 4xl
-  - `default`: Fluid sizes using `clamp()` for responsive scaling
-  - `information-dense`: Fixed rem sizes for data-heavy UIs
+A project type decides per size whether it grows with the viewport. `fluid({min}, {max})` grows from the min value at 360px to the max value at 1440px; the `dsn/fluid` transform in `src/config/config.js` turns it into a `clamp()`. A plain reference to the min value stays fixed.
+
+```json
+"md": { "$value": "fluid({dsn.text.font-size.min.md}, {dsn.text.font-size.max.md})" }
+```
+
+| Project type          | Font sizes  | Spacing     |
+| --------------------- | ----------- | ----------- |
+| `default`             | fluid       | fluid       |
+| `default-fixed-space` | fluid       | fixed (min) |
+| `information-dense`   | fixed (min) | fixed (min) |
 
 ## Installation
 
@@ -98,16 +113,20 @@ pnpm add @dsn-starter-kit/design-tokens
 
 ### Available Configurations
 
-| Configuration                       | Description                                   |
-| ----------------------------------- | --------------------------------------------- |
-| `start-light-default`               | Start theme, light mode, fluid typography     |
-| `start-light-information-dense`     | Start theme, light mode, fixed typography     |
-| `start-dark-default`                | Start theme, dark mode, fluid typography      |
-| `start-dark-information-dense`      | Start theme, dark mode, fixed typography      |
-| `wireframe-light-default`           | Wireframe theme, light mode, fluid typography |
-| `wireframe-light-information-dense` | Wireframe theme, light mode, fixed typography |
-| `wireframe-dark-default`            | Wireframe theme, dark mode, fluid typography  |
-| `wireframe-dark-information-dense`  | Wireframe theme, dark mode, fixed typography  |
+| Configuration                         | Description                                            |
+| ------------------------------------- | ------------------------------------------------------ |
+| `start-light-default`                 | Start theme, light mode, fluid text and spacing        |
+| `start-light-default-fixed-space`     | Start theme, light mode, fluid text, fixed spacing     |
+| `start-light-information-dense`       | Start theme, light mode, fixed text and spacing        |
+| `start-dark-default`                  | Start theme, dark mode, fluid text and spacing         |
+| `start-dark-default-fixed-space`      | Start theme, dark mode, fluid text, fixed spacing      |
+| `start-dark-information-dense`        | Start theme, dark mode, fixed text and spacing         |
+| `wireframe-light-default`             | Wireframe theme, light mode, fluid text and spacing    |
+| `wireframe-light-default-fixed-space` | Wireframe theme, light mode, fluid text, fixed spacing |
+| `wireframe-light-information-dense`   | Wireframe theme, light mode, fixed text and spacing    |
+| `wireframe-dark-default`              | Wireframe theme, dark mode, fluid text and spacing     |
+| `wireframe-dark-default-fixed-space`  | Wireframe theme, dark mode, fluid text, fixed spacing  |
+| `wireframe-dark-information-dense`    | Wireframe theme, dark mode, fixed text and spacing     |
 
 ### SCSS
 
@@ -214,15 +233,15 @@ For existing consumers, these aliases are maintained:
    └── typography.json
    ```
 
-2. Define font-size tokens (must include all sizes: sm, md, lg, xl, 2xl, 3xl, 4xl):
+2. Define all font sizes (sm, md, lg, xl, 2xl, 3xl, 4xl). Refer to the min and max tokens of the theme: `fluid({min}, {max})` grows with the viewport, a single reference stays fixed:
 
    ```json
    {
      "dsn": {
        "text": {
          "font-size": {
-           "sm": { "value": "0.75rem" },
-           "md": { "value": "0.875rem" },
+           "sm": { "$value": "fluid({dsn.text.font-size.min.sm}, {dsn.text.font-size.max.sm})" },
+           "md": { "$value": "{dsn.text.font-size.min.md}" },
            ...
          }
        }
@@ -230,10 +249,17 @@ For existing consumers, these aliases are maintained:
    }
    ```
 
-3. Update `src/config/config.js`:
+   Spacing works the same way (see `project-types/default/space.json`). Without a spacing file, spacing stays at the fixed min values of the theme.
+
+3. Update `src/config/config.js`: add the name to `projectTypes`, its files to `projectTypeSources` and a class to `densitySelectors`:
 
    ```js
-   const projectTypes = ['default', 'information-dense', 'my-density'];
+   const projectTypes = [
+     'default',
+     'default-fixed-space',
+     'information-dense',
+     'my-density',
+   ];
    ```
 
 4. Build.
@@ -254,17 +280,19 @@ For existing consumers, these aliases are maintained:
 - **Colors**: Grayscale only: all semantic colors alias to neutral/accent-1
 - **Focus**: Blue outline (standard browser style)
 
-### Default vs Information-Dense
+### Font sizes per project type
 
-| Size | Default (Fluid)                                  | Information-Dense (Fixed) |
-| ---- | ------------------------------------------------ | ------------------------- |
-| sm   | `clamp(0.875rem, 0.75rem + 0.25vw, 1.0625rem)`   | `0.875rem`                |
-| md   | `clamp(1rem, 0.875rem + 0.375vw, 1.28125rem)`    | `1rem`                    |
-| lg   | `clamp(1.25rem, 1.125rem + 0.375vw, 1.53125rem)` | `1.125rem`                |
-| xl   | `clamp(1.5rem, 1.25rem + 0.625vw, 1.9375rem)`    | `1.25rem`                 |
-| 2xl  | `clamp(2rem, 1.75rem + 0.75vw, 2.5625rem)`       | `1.5rem`                  |
-| 3xl  | `clamp(2.5rem, 2.125rem + 1.125vw, 3.3125rem)`   | `1.875rem`                |
-| 4xl  | `clamp(3rem, 2.5rem + 1.5vw, 4.125rem)`          | `2.25rem`                 |
+| Size | Min (360px) | Max (1440px) | `default` and `default-fixed-space` | `information-dense` |
+| ---- | ----------- | ------------ | ----------------------------------- | ------------------- |
+| sm   | 14px        | 17.5px       | fluid, min → max                    | 14px                |
+| md   | 16px        | 20px         | fluid, min → max                    | 16px                |
+| lg   | 20px        | 25px         | fluid, min → max                    | 20px                |
+| xl   | 24px        | 30px         | fluid, min → max                    | 24px                |
+| 2xl  | 32px        | 40px         | fluid, min → max                    | 32px                |
+| 3xl  | 40px        | 50px         | fluid, min → max                    | 40px                |
+| 4xl  | 48px        | 60px         | fluid, min → max                    | 48px                |
+
+Spacing follows the same pattern with max = min × 1.25 (sizes of 1px and 2px stay fixed). See `docs/02-design-tokens-reference.md` for the full scale.
 
 ## Building
 
@@ -278,7 +306,7 @@ Storybook is configured with three toolbar controls:
 
 - **Theme**: Switch between Start and Wireframe
 - **Mode**: Switch between Light and Dark
-- **Density**: Switch between Default (Fluid) and Information Dense (Fixed)
+- **Density**: Switch between Default (Fluid), Default (Fluid text, fixed space) and Information Dense (Fixed)
 
 The TokenTable component shows live computed CSS values that update when you change these settings.
 
