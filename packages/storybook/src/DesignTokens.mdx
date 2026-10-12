@@ -1450,11 +1450,40 @@ The min and max values live in the theme (`dsn.text.font-size.min.*` / `max.*`, 
 
 Which scales are fluid depends on the **density** (toolbar):
 
-| Density               | Font sizes         | Spacing            |
-| --------------------- | ------------------ | ------------------ |
-| `default`             | fluid              | fluid              |
-| `default-fixed-space` | fluid              | fixed (min values) |
-| `information-dense`   | fixed (min values) | fixed (min values) |
+{/* HTML-tabel: deze Storybook-MDX heeft geen remark-gfm, dus Markdown-tabellen renderen als tekst. */}
+
+<table>
+  <thead>
+    <tr>
+      <th>Density</th>
+      <th>Font sizes</th>
+      <th>Spacing</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>
+        <code>default</code>
+      </td>
+      <td>fluid</td>
+      <td>fluid</td>
+    </tr>
+    <tr>
+      <td>
+        <code>default-fixed-space</code>
+      </td>
+      <td>fluid</td>
+      <td>fixed (min values)</td>
+    </tr>
+    <tr>
+      <td>
+        <code>information-dense</code>
+      </td>
+      <td>fixed (min values)</td>
+      <td>fixed (min values)</td>
+    </tr>
+  </tbody>
+</table>
 
 Icons, checkboxes and radios follow the font size, so they scale along. Resize the window to see the values below change:
 
