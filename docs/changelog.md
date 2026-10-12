@@ -37,6 +37,12 @@ In Figma:
 - **Afgeleide fluid waarden**: waarden die alleen van viewport en density afhangen, krijgen nu een waarde per viewport in `dsn/Density`, in plaats van een op 1440px vastgeprikte waarde in `dsn/Primitives`. Waar de bron naar een spacing- of font-size-token verwijst, is het een alias. Het gaat om `form-control/font-size`, `form-control/padding-inline-*` en `icon/size/4xl`.
 - **Nog steeds vastgeprikt**: vijftien waarden die ook per theme verschillen, zoals de icon-sizes sm t/m 3xl en `form-control/padding-block-*`, staan nog op 1440px. Ze staan als `viewportPinned` in het report.
 
+Documentatie:
+
+- **Storybook**: "Foundations/Design Tokens" heeft een nieuwe sectie "Fluid Scale" met een live demo. Die laat zien waar de huidige viewport op de schaal zit en wat de fluid tokens daar opleveren. De tabellen voor font-sizes en spacing tonen min → max in plaats van de oude vaste waarden en clamps.
+- **Docs**: `docs/02-design-tokens-reference.md` en `docs/01-architecture.md` beschrijven de min- en max-tokens, `fluid()` en de drie densities.
+- **Beslisdocument**: DR-2026-13 legt vast waarom we kozen voor min/max per maat, uitgerekend in de build.
+
 Bewust vast gebleven:
 
 - het klikdoel van 3rem en de small button van 2.5rem;
