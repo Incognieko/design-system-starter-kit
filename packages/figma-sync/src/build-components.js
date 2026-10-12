@@ -113,7 +113,7 @@ async function main() {
             Object.values(matrix.viewports).map((entry) => entry.width)
           ),
         ]
-      : [matrix.viewport?.width ?? 375];
+      : [matrix.viewport?.width ?? 360];
     const variableIndexes = variablesPayload
       ? new Map(
           widths.map((width) => [

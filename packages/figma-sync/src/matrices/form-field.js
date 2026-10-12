@@ -34,7 +34,7 @@ export default {
     '@dsn-starter-kit/components-html/src/form-field/form-field.css',
   ],
 
-  wrapperStyle: 'width: 343px;',
+  wrapperStyle: 'width: 328px;',
 
   axes: {
     invalid: FLAG,

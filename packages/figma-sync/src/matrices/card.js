@@ -32,8 +32,8 @@ export default {
     '@dsn-starter-kit/components-html/src/card/card.css',
   ],
 
-  // Mobile-first: 375px viewport met 16px padding aan weerszijden.
-  wrapperStyle: 'width: 343px;',
+  // Mobile-first: 360px viewport met 16px padding aan weerszijden.
+  wrapperStyle: 'width: 328px;',
 
   axes: {
     preHeader: ['with-pre-header', 'no-pre-header'],

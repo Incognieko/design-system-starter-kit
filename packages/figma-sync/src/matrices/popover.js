@@ -29,7 +29,7 @@ export default {
     '@dsn-starter-kit/components-html/src/popover/popover.css',
   ],
 
-  wrapperStyle: 'width: 343px;',
+  wrapperStyle: 'width: 328px;',
 
   /**
    * `:popover-open` is geen attribuut maar een toestand die de Popover API

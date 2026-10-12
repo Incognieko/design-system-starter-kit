@@ -29,7 +29,7 @@ export default {
     '@dsn-starter-kit/components-html/src/form-field-status/form-field-status.css',
   ],
 
-  wrapperStyle: 'width: 343px;',
+  wrapperStyle: 'width: 328px;',
 
   axes: {
     variant: ['default', 'positive', 'warning'],

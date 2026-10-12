@@ -49,11 +49,11 @@ export default {
   // container query. De viewport schuift toch mee, want een breadcrumb van
   // 1168px staat in werkelijkheid op een desktoppagina, en daar staat de fluid
   // typografie op haar bovengrens en `dsn/Density` op `default-desktop`. Zou de
-  // viewport op 375 blijven, dan kwam er een variant uit die in de browser niet
+  // viewport op 360 blijven, dan kwam er een variant uit die in de browser niet
   // bestaat: desktopbreedte met mobiele typografie.
   viewportAxis: 'viewport',
   viewports: {
-    small: { width: 375, wrapperStyle: 'width: 343px;' },
+    small: { width: 360, wrapperStyle: 'width: 328px;' },
     large: { width: 1440, wrapperStyle: 'width: 1168px;' },
   },
 

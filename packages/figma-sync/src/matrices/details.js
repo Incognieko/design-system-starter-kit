@@ -31,7 +31,7 @@ export default {
     '@dsn-starter-kit/components-html/src/details/details.css',
   ],
 
-  wrapperStyle: 'width: 343px;',
+  wrapperStyle: 'width: 328px;',
 
   axes: {
     state: ['closed', 'open'],

@@ -42,33 +42,39 @@ color-palette-generator, dus Figma toont de kleur die de generator liet zien
 browser op een scherm met een groter gamut (P3) kan zo'n kleur wél verzadigder
 tonen dan Figma.
 
-## Fluid typografie
+## Fluid typografie en spacing
 
 Een Figma-variable is statisch, dus een `clamp()` moet op een viewport worden
 vastgeprikt. In plaats van één willekeurige breedte te kiezen krijgt de
-`dsn/Density`-collection een mode per viewport:
+`dsn/Density`-collection een mode per viewport, op de grenzen van de fluid
+schaal (`dsn.viewport.min-inline-size` en `max-inline-size`):
 
-| mode                | viewport | `text/font-size/md` |
-| ------------------- | -------- | ------------------- |
-| `default-mobile`    | 375px    | 16px                |
-| `default-desktop`   | 1440px   | 19,4px              |
-| `information-dense` | n.v.t.   | 16px                |
+| mode                          | viewport | `text/font-size/md` | `space/block/md` |
+| ----------------------------- | -------- | ------------------- | ---------------- |
+| `default-mobile`              | 360px    | 16px                | 8px              |
+| `default-desktop`             | 1440px   | 20px                | 10px             |
+| `default-fixed-space-mobile`  | 360px    | 16px                | 8px              |
+| `default-fixed-space-desktop` | 1440px   | 20px                | 8px              |
+| `information-dense`           | n.v.t.   | 16px                | 8px              |
 
-375px valt onder elke clamp-ondergrens, dus die mode bevat exact de ontworpen
-min-waarden. De bovengrens is bewust géén mode: die wordt pas bereikt vanaf
-ongeveer 1733px en komt op geen realistisch artboard voor.
+De twee viewports vallen precies op de grenzen van elke clamp, dus de modes
+bevatten exact de ontworpen min- en max-waarden. Een project-type dat niet
+fluid is krijgt automatisch één mode in plaats van een mode per viewport, zoals
+`information-dense` hierboven.
 
-Een project-type dat niet fluid is krijgt automatisch één mode in plaats van
-een mode per viewport, zoals `information-dense` hierboven.
+Naast de font-sizes en de spacing-maten komen ook afgeleide fluid waarden in
+deze collection, zolang ze niet per theme verschillen: `form-control/font-size`
+en `form-control/padding-inline-*` (als alias naar `text/font-size/md` en
+`space/inline/lg`) en `icon/size/4xl`. Component-variables die als alias naar
+deze collection wijzen blijven in `dsn/Components`, dus het schakelen van het
+artboard laat typografie en ruimte meebewegen zonder dat er iets opnieuw
+gebonden hoeft te worden.
 
-35 component-variables aliassen naar deze collection, dus het schakelen van het
-artboard laat de hele typografie meebewegen zonder dat er iets opnieuw gebonden
-hoeft te worden.
-
-Twaalf fluid waarden staan buiten deze collection (de icon-sizes en vier
-`padding-*-with-icon`-tokens). Die hangen van theme én viewport af en zitten in
-een collection met een andere mode-as, dus ze zijn op 1440px vastgeprikt. Ze
-staan als `viewportPinned` in het report.
+Vijftien fluid waarden hangen van theme én viewport af: de icon-sizes sm t/m 3xl
+(via de line-height van het theme), `form-control/padding-block-*` (Start en
+Wireframe verwijzen naar een andere spacing-maat) en de tokens die daarvan
+afgeleid zijn. Geen collection heeft beide assen, dus die zijn op 1440px
+vastgeprikt. Ze staan als `viewportPinned` in het report.
 
 ## Gebruik
 
@@ -143,9 +149,9 @@ alleen een onzichtbare node op en worden daarom niet meegenomen.
 
 ### Mobile-first meten
 
-De meetviewport is **375px**, en blok-componenten krijgen een wrapper van
-**343px** (375 min 2 x 16px padding). Dat is bewust: het design system wordt
-mobile-first ontworpen, en op 375px lossen alle fluid clamps op hun ondergrens
+De meetviewport is **360px**, en blok-componenten krijgen een wrapper van
+**328px** (360 min 2 x 16px padding). Dat is bewust: het design system wordt
+mobile-first ontworpen, en op 360px lossen alle fluid clamps op hun ondergrens
 op. De gemeten typografie komt daarmee exact overeen met de `default-mobile`
 mode van de `dsn/Density`-collection, dus component en variable zeggen
 hetzelfde. Per matrix te overschrijven met `viewport`.
@@ -154,7 +160,7 @@ hetzelfde. Per matrix te overschrijven met `viewport`.
 
 Een component met layouts die elkaar per viewport aflossen is op één breedte
 niet te meten. De large- en compact-layout van PageHeader zijn onder 64em
-`display: none`, en de extractor slaat die over: op 375px komt uitsluitend de
+`display: none`, en de extractor slaat die over: op 360px komt uitsluitend de
 mobiele balk mee.
 
 Zo'n matrix zet daarom `viewports` neer en wijst met `viewportAxis` de as aan
@@ -169,14 +175,14 @@ die ertussen kiest:
 
   viewportAxis: 'viewport',
   viewports: {
-    small: { width: 375, wrapperStyle: 'width: 375px;' },
+    small: { width: 360, wrapperStyle: 'width: 360px;' },
     large: { width: 1440, wrapperStyle: 'width: 1440px;' },
   },
 ```
 
 De assen volgen de props van Storybook, zodat een designer dezelfde knoppen
 ziet als een developer. Een header loopt van rand tot rand en zet zijn eigen
-padding, dus de wrapper is daar net zo breed als de viewport en niet 343.
+padding, dus de wrapper is daar net zo breed als de viewport en niet 328.
 
 Belangrijker dan de breedte zijn de modes. `modesForMatrix` leidt uit de
 gemeten breedte af welke mode van `dsn/Density` geldt, en die modeset bepaalt
@@ -198,7 +204,7 @@ hoort bij de prop en niet bij de viewport.
 klapt in zolang het component zelf 32rem of smaller is; dat hangt aan de
 wrapper en niet aan de viewport. De viewport schuift toch mee, want een
 breadcrumb van 1168px staat in werkelijkheid op een desktoppagina. Zou hij op
-375 blijven, dan leverde dat een variant op die in de browser niet bestaat:
+360 blijven, dan leverde dat een variant op die in de browser niet bestaat:
 desktopbreedte met mobiele typografie. Meetbaar verschil: de tekst gaat van 14
 naar 15,6px, en de bindingen gaan van `default-mobile` naar `default-desktop`.
 
@@ -850,24 +856,24 @@ een element dat alleen tekst bevat wordt één TEXT-node.
 
 ### Een fluid token dat op de verkeerde viewport vastgeprikt staat, bindt niet
 
-Twaalf fluid waarden staan in een collection waarvan de mode-as het theme is en
-niet de viewport, en zijn daarom op 1440px vastgeprikt (zie "Fluid typografie").
-De matrices meten op 375px. De verificatie uit DR-2026-06 vergelijkt beide, ziet
-een verschil, en weigert de binding.
+Vijftien fluid waarden hangen van theme én viewport af en zijn daarom op 1440px
+vastgeprikt (zie "Fluid typografie en spacing"). De matrices meten op 360px. De
+verificatie uit DR-2026-06 vergelijkt beide, ziet een verschil, en weigert de
+binding.
 
 Dat is het systeem dat werkt zoals bedoeld, maar het gevolg is wel dat die
-waarden in Figma een vaste waarde houden. Het raakt onder meer
-`form-control/font-size`, en daarmee de tekst in élk formulierveld, plus de vier
-`padding-*-with-icon`-tokens van Select, SearchInput, DateInput en TimeInput.
+waarden in Figma een vaste waarde houden. In de huidige build raakt het de vier
+`padding-*-with-icon`-tokens van Select, SearchInput, DateInput en TimeInput:
+175 bindingen.
 
 Zichtbaar in de build als:
 
 ```
-font-size  de waarde van het token (19.4) wijkt af van de gemeten 16
+padding-left  de waarde van het token (55) wijkt af van de gemeten 44 (search-input/padding-inline-start-with-icon)
 ```
 
 Dit hoort bij issue #328. Zolang die openstaat is het geen regressie maar een
-bekende post: 55 bindingen over vier componenten.
+bekende post.
 
 ### Pseudo-elementen komen nooit mee
 
@@ -944,7 +950,7 @@ varianten de set stuk.
 
 Een component dat in CSS een blok is pakt de volle breedte van de meetwrapper.
 Die breedte is `wrapperStyle` en zegt niets over het component, maar in Figma
-staat het frame er wel op vast: 343px, ook als er "Tekst" in staat.
+staat het frame er wel op vast: 328px, ook als er "Tekst" in staat.
 
 `hugRoot: true` op de matrix zet de root in de breedte op HUG. Het frame groeit
 dan mee met de tekst die de designer zelf typt. Een kind dat de wrapperbreedte

@@ -31,6 +31,12 @@ Componenten met een vaste maat die bij de tekst hoort, schalen nu mee:
 - **Popover en PopoverMenu**: de afstand tot de trigger is `space.block.sm` en `space.inline.sm` in plaats van een hardcoded 0.25rem.
 - **DateInput en TimeInput**: de 1px padding die Chromium boven en onder de datum- en tijdvelden zet, is weg. Op een brede viewport werden deze velden daardoor 2px hoger dan een gewone text input.
 
+In Figma:
+
+- **Meetbreedte**: de matrices van `figma-sync` meten op 360px in plaats van 375px. Blok-componenten zijn daardoor 328px breed in plaats van 343px. De mobile- en desktop-modes van `dsn/Density` vallen zo precies op de grenzen van de fluid schaal.
+- **Afgeleide fluid waarden**: waarden die alleen van viewport en density afhangen, krijgen nu een waarde per viewport in `dsn/Density`, in plaats van een op 1440px vastgeprikte waarde in `dsn/Primitives`. Waar de bron naar een spacing- of font-size-token verwijst, is het een alias. Het gaat om `form-control/font-size`, `form-control/padding-inline-*` en `icon/size/4xl`.
+- **Nog steeds vastgeprikt**: vijftien waarden die ook per theme verschillen, zoals de icon-sizes sm t/m 3xl en `form-control/padding-block-*`, staan nog op 1440px. Ze staan als `viewportPinned` in het report.
+
 Bewust vast gebleven:
 
 - het klikdoel van 3rem en de small button van 2.5rem;

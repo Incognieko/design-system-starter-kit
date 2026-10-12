@@ -33,7 +33,7 @@ export default {
     '@dsn-starter-kit/components-html/src/checkbox-option/checkbox-option.css',
   ],
 
-  wrapperStyle: 'width: 343px;',
+  wrapperStyle: 'width: 328px;',
 
   axes: {
     state: ['unchecked', 'checked'],

@@ -34,7 +34,7 @@ export default {
     '@dsn-starter-kit/components-html/src/table/table.css',
   ],
 
-  wrapperStyle: 'width: 343px;',
+  wrapperStyle: 'width: 328px;',
 
   axes: {
     caption: ['with-caption', 'no-caption'],

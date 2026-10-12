@@ -29,7 +29,7 @@ export default {
     '@dsn-starter-kit/components-html/src/hero/hero.css',
   ],
 
-  wrapperStyle: 'width: 375px;',
+  wrapperStyle: 'width: 360px;',
 
   axes: {
     variant: ['default', 'inverse', 'image'],

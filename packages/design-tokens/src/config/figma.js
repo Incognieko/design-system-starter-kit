@@ -426,10 +426,15 @@ export async function buildFigmaVariables({
     skipped.push({ token: token.path.join('.'), reason });
   };
 
-  // Fluid waarden buiten de typografieschaal. Die collections hebben een andere
-  // mode-as (theme, light/dark), dus daar kan geen viewport-as bij. Ze worden
-  // op DEFAULT_VIEWPORT vastgeprikt en hier verantwoord.
+  // Fluid waarden die ook per theme verschillen. Die passen niet in de
+  // Density-collection (geen theme-as) en ook niet in Primitives (geen
+  // viewport-as). Ze worden op DEFAULT_VIEWPORT vastgeprikt en hier verantwoord.
   const viewportPinned = [];
+
+  // Per variable alle waarden over theme x light/dark, op DEFAULT_VIEWPORT.
+  // Een fluid waarde die hier maar één waarde heeft hangt alleen van de
+  // viewport en de density af, en kan dus naar de Density-collection.
+  const valuesAcrossThemes = new Map();
 
   // ---------------------------------------------------------------------------
   // 1. Primitives: een mode per theme x light/dark combinatie.
@@ -445,21 +450,22 @@ export async function buildFigmaVariables({
       const tokens = await loadTokens(theme, mode, densities[0]);
       const pixels = buildPixelLookup(tokens);
       for (const token of tokens) {
-        if (collectionForToken(token) !== COLLECTIONS.primitives) continue;
+        const collection = collectionForToken(token);
+        if (collection === COLLECTIONS.density) continue;
 
         const mapped = mapTokenValue(token, pixels);
         const name = toVariableName(token);
+        if (!mapped.skip) {
+          if (!valuesAcrossThemes.has(name)) {
+            valuesAcrossThemes.set(name, new Set());
+          }
+          valuesAcrossThemes.get(name).add(mapped.value);
+        }
+
+        if (collection !== COLLECTIONS.primitives) continue;
         if (mapped.skip) {
           if (modeName === primitiveModes[0]) noteSkip(token, mapped.skip);
           continue;
-        }
-
-        if (mapped.fluidSource && modeName === primitiveModes[0]) {
-          viewportPinned.push({
-            variable: name,
-            collection: COLLECTIONS.primitives,
-            source: mapped.fluidSource,
-          });
         }
 
         if (!primitives.has(name)) {
@@ -523,6 +529,41 @@ export async function buildFigmaVariables({
     }
   }
 
+  // Fluid waarden buiten de project-types, zoals form-control/padding-* (via
+  // space) en form-control/font-size. Hangen ze niet van het theme af, dan
+  // krijgen ze in Density een waarde per viewport in plaats van een vastgeprikte
+  // waarde in Primitives of Components. Een component-token dat al als alias
+  // naar een fluid variable wijst blijft waar het is: de alias volgt de mode al.
+  const baseValues = measured.get(`${densities[0]}|${viewportNames[0]}`);
+  const movedToDensity = new Set();
+  for (const [name, { token, mapped }] of baseValues) {
+    if (densityNames.has(name) || !mapped.fluidSource) continue;
+    const collection = collectionForToken(token);
+    if (
+      collection === COLLECTIONS.components &&
+      referenceToVariableName(token.original.$value)
+    ) {
+      continue;
+    }
+    const measuredEverywhere = [...measured.values()].every(
+      (values) => values.get(name)?.mapped.figmaType === 'FLOAT'
+    );
+    if (valuesAcrossThemes.get(name)?.size === 1 && measuredEverywhere) {
+      movedToDensity.add(name);
+      densityNames.add(name);
+    }
+  }
+
+  for (const name of movedToDensity) primitives.delete(name);
+  for (const variable of primitives.values()) {
+    if (!variable.fluidSource) continue;
+    viewportPinned.push({
+      variable: variable.name,
+      collection: COLLECTIONS.primitives,
+      source: variable.fluidSource,
+    });
+  }
+
   for (const densityName of densities) {
     const valuesFor = (viewportName) =>
       measured.get(`${densityName}|${viewportName}`);
@@ -563,6 +604,20 @@ export async function buildFigmaVariables({
         density.get(name).valuesByMode[mode] = entry.mapped.value;
       }
     }
+  }
+
+  // Een verplaatst token dat in de bron naar een ander Density-token verwijst
+  // (form-control/padding-block-start -> space/block/md) wordt een alias, zodat
+  // de delegatieketen in Figma intact blijft.
+  for (const name of movedToDensity) {
+    const variable = density.get(name);
+    if (!variable) continue;
+    const reference = referenceToVariableName(
+      baseValues.get(name).token.original.$value
+    );
+    if (!reference || reference === name || !density.has(reference)) continue;
+    delete variable.valuesByMode;
+    variable.alias = { collection: COLLECTIONS.density, name: reference };
   }
 
   // ---------------------------------------------------------------------------
@@ -660,6 +715,15 @@ export async function buildFigmaVariables({
   dropIncomplete(density, densityModes, COLLECTIONS.density);
 
   // Aliassen die naar een zojuist verwijderde variable wezen kunnen niet meer.
+  for (const [name, variable] of [...density]) {
+    if (!variable.alias || density.has(variable.alias.name)) continue;
+    density.delete(name);
+    incomplete.push({
+      variable: name,
+      collection: COLLECTIONS.density,
+      missing: [`aliasdoel ${variable.alias.name} is vervallen`],
+    });
+  }
   for (const [name, variable] of [...components]) {
     if (!variable.alias) continue;
     const target =
