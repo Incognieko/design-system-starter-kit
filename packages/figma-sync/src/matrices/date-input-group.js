@@ -32,7 +32,7 @@ export default {
     '@dsn-starter-kit/components-html/src/date-input-group/date-input-group.css',
   ],
 
-  wrapperStyle: 'width: 343px;',
+  wrapperStyle: 'width: 328px;',
 
   axes: {
     invalid: FLAG,

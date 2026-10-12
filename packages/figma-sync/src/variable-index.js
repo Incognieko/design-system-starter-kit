@@ -37,7 +37,7 @@ export function cssNameFor(variableName) {
  * De verificatie vergelijkt de waarde van het token met de gemeten waarde, dus
  * beide moeten uit dezelfde hoek komen: dezelfde theme, dezelfde light/dark
  * stand en dezelfde viewport. De matrix zegt met welke token-CSS hij rendert
- * (`start-light-default.css`) en op welke breedte (375px), en dat is precies
+ * (`start-light-default.css`) en op welke breedte (360px), en dat is precies
  * genoeg om de modes te kiezen.
  */
 export function modesForMatrix(matrix, collections, width) {
@@ -55,10 +55,10 @@ export function modesForMatrix(matrix, collections, width) {
   // fluid is; is het dat niet, dan is er maar één mode met de kale naam.
   //
   // De breedte komt als argument binnen, want een matrix kan varianten op
-  // verschillende viewports hebben (PageHeader meet small op 375 en large op
+  // verschillende viewports hebben (PageHeader meet small op 360 en large op
   // 1440). Zonder argument geldt de viewport van de matrix als geheel.
-  const measured = width ?? matrix.viewport?.width ?? 375;
-  const viewport = measured > 375 ? 'desktop' : 'mobile';
+  const measured = width ?? matrix.viewport?.width ?? 360;
+  const viewport = measured > 360 ? 'desktop' : 'mobile';
 
   const modesOf = (name) =>
     collections.find((collection) => collection.name === name)?.modes ?? [];

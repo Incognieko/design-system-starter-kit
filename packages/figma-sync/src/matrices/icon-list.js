@@ -28,7 +28,7 @@ export default {
     '@dsn-starter-kit/components-html/src/icon-list/icon-list.css',
   ],
 
-  wrapperStyle: 'width: 343px;',
+  wrapperStyle: 'width: 328px;',
 
   axes: {
     icon: ['check', 'circle-check', 'x'],

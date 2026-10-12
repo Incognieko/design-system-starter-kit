@@ -26,7 +26,7 @@ export default {
     '@dsn-starter-kit/components-html/src/menu/menu.css',
   ],
 
-  wrapperStyle: 'width: 343px;',
+  wrapperStyle: 'width: 328px;',
 
   axes: {
     orientation: ['vertical', 'horizontal'],

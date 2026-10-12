@@ -26,7 +26,7 @@ export default {
     '@dsn-starter-kit/components-html/src/table-of-contents/table-of-contents.css',
   ],
 
-  wrapperStyle: 'width: 343px;',
+  wrapperStyle: 'width: 328px;',
 
   warnings: [
     'de bolletjes van de lijst ontbreken: `::marker` is een pseudo-element en dus geen DOM-node. Zie issue #373.',

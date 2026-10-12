@@ -39,7 +39,7 @@ export default {
     '@dsn-starter-kit/components-html/src/date-input/date-input.css',
   ],
 
-  wrapperStyle: 'width: 343px;',
+  wrapperStyle: 'width: 328px;',
 
   // De root is een wrapper-div om het veld en zijn icoon heen; die naam zegt
   // een designer niets. De set heet naar het component zelf.

@@ -63,33 +63,49 @@ Complete reference for all design tokens in the Design System Starter Kit.
 - `default`: 400
 - `bold`: 700
 
-### Font Size (Project Type: Default - Fluid)
+### Fluid scale and densities
 
-**Base:** `clamp(min, preferred, max)`
+Font sizes and spacing grow with the viewport between `dsn.viewport.min-inline-size` (360px) and `dsn.viewport.max-inline-size` (1440px). Below 360px a token stays at its **min** value, above 1440px at its **max** value, and in between it grows in a straight line. 1440 / 360 = 4, the same factor as the 400% zoom from WCAG 1.4.10.
 
-**Viewport range:** 400px → 1200px
+Every size has its own min and max token in the theme (`themes/*/base.json`), so a white-label organisation can deviate per size. By default every max is the min × 1.25.
 
-| Token | Min (400px) | Preferred          | Max (1200px) |
-| ----- | ----------- | ------------------ | ------------ |
-| `sm`  | 14px        | 0.75rem + 0.25vw   | 17px         |
-| `md`  | 16px        | 0.875rem + 0.375vw | 20.5px       |
-| `lg`  | 20px        | 1.125rem + 0.375vw | 24.5px       |
-| `xl`  | 24px        | 1.25rem + 0.625vw  | 31px         |
-| `2xl` | 32px        | 1.75rem + 0.75vw   | 41px         |
-| `3xl` | 40px        | 2.125rem + 1.125vw | 53px         |
-| `4xl` | 48px        | 2.5rem + 1.5vw     | 66px         |
+```json
+"font-size": {
+  "min": { "md": { "$value": "1rem" } },
+  "max": { "md": { "$value": "calc(1rem * 1.25)" } }
+}
+```
 
-### Font Size (Project Type: Information-Dense - Fixed)
+A project type decides per size whether it is fluid, with `fluid({min}, {max})`. The build (`dsn/fluid` transform in `src/config/config.js`) turns that into a `clamp()`:
 
-| Token | Value           | Comment             |
-| ----- | --------------- | ------------------- |
-| `sm`  | 0.875rem (14px) | Small text - fixed  |
-| `md`  | 1rem (16px)     | Medium text - fixed |
-| `lg`  | 1.125rem (18px) | Large text - fixed  |
-| `xl`  | 1.25rem (20px)  | Extra large - fixed |
-| `2xl` | 1.5rem (24px)   | 2x large - fixed    |
-| `3xl` | 1.875rem (30px) | 3x large - fixed    |
-| `4xl` | 2.25rem (36px)  | 4x large - fixed    |
+```json
+// project-types/default/typography.json
+"md": { "$value": "fluid({dsn.text.font-size.min.md}, {dsn.text.font-size.max.md})" }
+```
+
+```css
+--dsn-text-font-size-md: clamp(1rem, 0.91667rem + 0.37037vw, 1.25rem);
+```
+
+| Density (project type) | Font sizes         | Spacing            |
+| ---------------------- | ------------------ | ------------------ |
+| `default`              | fluid              | fluid              |
+| `default-fixed-space`  | fluid              | fixed (min values) |
+| `information-dense`    | fixed (min values) | fixed (min values) |
+
+Not scaled on purpose: spacing sizes of 1px and 2px (min = max), the pointer target (3rem), borders and layout widths.
+
+### Font Size
+
+| Token | Min (360px) | Max (1440px) | Information-dense |
+| ----- | ----------- | ------------ | ----------------- |
+| `sm`  | 14px        | 17.5px       | 14px              |
+| `md`  | 16px        | 20px         | 16px              |
+| `lg`  | 20px        | 25px         | 20px              |
+| `xl`  | 24px        | 30px         | 24px              |
+| `2xl` | 32px        | 40px         | 32px              |
+| `3xl` | 40px        | 50px         | 40px              |
+| `4xl` | 48px        | 60px         | 48px              |
 
 ### Line Height
 
@@ -130,21 +146,23 @@ Complete reference for all design tokens in the Design System Starter Kit.
 
 ### Spacing Scale
 
-**All values calculated from `space-base` (0.5rem = 8px)**
+**Min values calculated from `space-base` (0.5rem = 8px); max = min × 1.25.** In the `default` density the value grows from min to max; in `default-fixed-space` and `information-dense` it stays at min. Tokens: `dsn.space.{block,inline,text,column,row}.{size}`, with `.min.{size}` and `.max.{size}` in the theme.
 
-| Token | Multiplier | Value      | Use Case            |
-| ----- | ---------- | ---------- | ------------------- |
-| `2xs` | 0.125      | 1px        | Hairline spacing    |
-| `xs`  | 0.25       | 2px        | Minimal spacing     |
-| `sm`  | 0.5        | 4px        | Tight spacing       |
-| `md`  | 1          | 8px        | Default spacing     |
-| `lg`  | 1.5        | 12px       | Comfortable spacing |
-| `xl`  | 2          | 16px       | Loose spacing       |
-| `2xl` | 2.5        | 20px       | Section spacing     |
-| `3xl` | 3          | 24px       | Large spacing       |
-| `4xl` | 4          | 32px       | Extra large spacing |
-| `5xl` | 6/8        | 48px/64px  | Section breaks      |
-| `6xl` | 8/20       | 64px/160px | Major sections      |
+| Token | Multiplier | Min (360px) | Max (1440px) | Use Case            |
+| ----- | ---------- | ----------- | ------------ | ------------------- |
+| `2xs` | 0.125      | 1px         | 1px (fixed)  | Hairline spacing    |
+| `xs`  | 0.25       | 2px         | 2px (fixed)  | Minimal spacing     |
+| `sm`  | 0.5        | 4px         | 5px          | Tight spacing       |
+| `md`  | 1          | 8px         | 10px         | Default spacing     |
+| `lg`  | 1.5        | 12px        | 15px         | Comfortable spacing |
+| `xl`  | 2          | 16px        | 20px         | Loose spacing       |
+| `2xl` | 2.5        | 20px        | 25px         | Section spacing     |
+| `3xl` | 3          | 24px        | 30px         | Large spacing       |
+| `4xl` | 4          | 32px        | 40px         | Extra large spacing |
+| `5xl` | 6/8        | 48px/64px   | 60px/80px    | Section breaks      |
+| `6xl` | 8/20       | 64px/160px  | 80px/200px   | Major sections      |
+
+`5xl` and `6xl` differ per concept: block and inline use 6 and 8, column and row use 8 and 20. Text spacing runs from `3xs` (1px) to `3xl`.
 
 ---
 
@@ -154,7 +172,7 @@ Complete reference for all design tokens in the Design System Starter Kit.
 
 **Fluid, coupled to typography** (`font-size × line-height`)
 
-Icon sizes scale fluidly with the viewport because they reference the fluid `clamp()` font-size tokens:
+Icon sizes scale fluidly with the viewport because they reference the fluid font-size tokens. Checkbox and radio sizes use the same calculation, so they scale along:
 
 ```css
 --dsn-icon-size-md: calc(
@@ -162,15 +180,15 @@ Icon sizes scale fluidly with the viewport because they reference the fluid `cla
 );
 ```
 
-| Token | Calculation                       | Approx. at 400px | Approx. at 1200px |
-| ----- | --------------------------------- | ---------------- | ----------------- |
-| `sm`  | `font-size.sm × line-height.sm`   | 21px             | 25.5px            |
-| `md`  | `font-size.md × line-height.md`   | 24px             | 30.75px           |
-| `lg`  | `font-size.lg × line-height.lg`   | 25px             | 30.6px            |
-| `xl`  | `font-size.xl × line-height.xl`   | 30px             | 38.75px           |
-| `2xl` | `font-size.2xl × line-height.2xl` | 40px             | 51.25px           |
-| `3xl` | `font-size.3xl × line-height.3xl` | 50px             | 66.25px           |
-| `4xl` | `font-size.4xl × line-height.4xl` | 52.8px           | 72.6px            |
+| Token | Calculation                       | Start at 360px | Start at 1440px |
+| ----- | --------------------------------- | -------------- | --------------- |
+| `sm`  | `font-size.sm × line-height.sm`   | 21px           | 26.25px         |
+| `md`  | `font-size.md × line-height.md`   | 24px           | 30px            |
+| `lg`  | `font-size.lg × line-height.lg`   | 25px           | 31.25px         |
+| `xl`  | `font-size.xl × line-height.xl`   | 30px           | 37.5px          |
+| `2xl` | `font-size.2xl × line-height.2xl` | 40px           | 50px            |
+| `3xl` | `font-size.3xl × line-height.3xl` | 50px           | 62.5px          |
+| `4xl` | `font-size.4xl × line-height.4xl` | 52.8px         | 66px            |
 
 ### Pointer Target (WCAG)
 
@@ -424,7 +442,7 @@ Five semantic easing curves for consistent motion feel.
 - Semantic tokens: ~435 per configuration (incl. content sizing, form control sizing, box shadows, z-index, breakpoints)
 - Component tokens: ~700 (component JSON files per categorie: layout, content, display/feedback, navigation, branding, form)
 - **Total: ~1135+ tokens per full configuration**
-- **Total configurations: 8** (2 themes × 2 modes × 2 project types)
+- **Total configurations: 12** (2 themes × 2 modes × 3 project types)
 
 ---
 

@@ -30,7 +30,7 @@ export default {
     '@dsn-starter-kit/components-html/src/image/image.css',
   ],
 
-  wrapperStyle: 'width: 343px;',
+  wrapperStyle: 'width: 328px;',
 
   warnings: [
     'de afbeelding zelf komt niet mee: de extractor levert een frame met de juiste verhouding en het juiste kader, maar zonder image fill. Een designer zet daar zijn eigen beeld in.',

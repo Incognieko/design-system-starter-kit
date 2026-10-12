@@ -24,7 +24,7 @@ export default {
     '@dsn-starter-kit/components-html/src/file-input/file-input.css',
   ],
 
-  wrapperStyle: 'width: 343px;',
+  wrapperStyle: 'width: 328px;',
 
   warnings: [
     'de knop "Bestand kiezen" ontbreekt: die is `::file-selector-button`, een pseudo-element en dus geen DOM-node. Het veld eromheen komt wel volledig over.',

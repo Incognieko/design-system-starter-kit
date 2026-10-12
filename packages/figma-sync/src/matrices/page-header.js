@@ -7,7 +7,7 @@
  * daaronder onzichtbaar.
  *
  * Daarom meet deze matrix op twee viewports in plaats van op één. De `viewport`
- * -as kiest de breedte: `small` op 375px (de layout van een telefoon, en de
+ * -as kiest de breedte: `small` op 360px (de layout van een telefoon, en de
  * header loopt daar van rand tot rand, dus de wrapper is net zo breed als de
  * viewport) en `large` op 1440px. `modesForMatrix` leidt uit die breedte af
  * welke mode van `dsn/Density` geldt, dus de bindingen van de small-varianten
@@ -102,11 +102,11 @@ export default {
 
   // De as die de meetbreedte kiest, en de breedtes zelf. Een header loopt van
   // rand tot rand en zet zijn eigen padding, dus de wrapper is hier net zo
-  // breed als de viewport en niet 343 zoals bij een component dat binnen de
+  // breed als de viewport en niet 328 zoals bij een component dat binnen de
   // paginabreedte staat.
   viewportAxis: 'viewport',
   viewports: {
-    small: { width: 375, wrapperStyle: 'width: 375px;' },
+    small: { width: 360, wrapperStyle: 'width: 360px;' },
     large: { width: 1440, wrapperStyle: 'width: 1440px;' },
   },
 

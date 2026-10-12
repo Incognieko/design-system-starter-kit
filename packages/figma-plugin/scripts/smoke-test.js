@@ -133,9 +133,11 @@ check(
 );
 
 const density = state.collections.find((c) => c.name === 'dsn/Density');
+// default en default-fixed-space zijn fluid (een mode per viewport),
+// information-dense is vast (één mode).
 check(
-  'Density heeft 3 modes',
-  density && density.modes.length === 3,
+  'Density heeft 5 modes',
+  density && density.modes.length === 5,
   density ? density.modes.map((m) => m.name).join(', ') : 'ontbreekt'
 );
 

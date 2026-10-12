@@ -10,6 +10,47 @@ All notable changes to this project are documented in this file.
 
 Nog niet gepubliceerde wijzigingen. Schrijf nieuwe changelog-entries hieronder; bij de volgende release wordt deze kop gepromoveerd naar het definitieve versienummer.
 
+### Fluid spacing naast de fluid type scale
+
+Ruimte groeit nu mee met de viewport, net als tekst. Elke maat heeft in het thema een min-waarde (op 360px) en een max-waarde (op 1440px): `dsn.text.font-size.min.*` / `max.*` en `dsn.space.{block,inline,text,column,row}.min.*` / `max.*`. Het bereik zelf staat in `dsn.viewport.min-inline-size` en `max-inline-size`. Standaard is elke max de min × 1.25. Maten van 1px en 2px schalen niet mee, en het klikdoel (`dsn.pointer-target`, 3rem) blijft vast.
+
+Een project-type kiest per maat met `fluid({min}, {max})` of hij meegroeit. De build maakt daar een `clamp()` van. Er zijn nu drie densities:
+
+- `default`: fluid tekst en fluid ruimte. Dit is nieuw, en daardoor groeit de spacing in bestaande projecten op `default` mee.
+- `default-fixed-space`: fluid tekst met vaste ruimte. Dit is het oude gedrag van `default`.
+- `information-dense`: tekst en ruimte zijn vast.
+
+Ook voor tekst verandert er iets. Medium gaat nu van 16px naar 20px tussen 360px en 1440px. Eerder was dat 16px naar 20,5px tot ongeveer 1730px. Icons, checkboxes en radio's volgen de font-size, dus die schalen vanzelf mee. In de Figma-export staat de spacing nu in de `dsn/Density`-collection, met een mobile- en een desktop-mode op 360px en 1440px.
+
+Componenten met een vaste maat die bij de tekst hoort, schalen nu mee:
+
+- **Spinner**: `--dsn-spinner-size` is `icon.size.md` (24 → 30px), de grote variant is het dubbele (48 → 60px).
+- **File**: `--dsn-file-media-size` is twee keer `icon.size.md` (48 → 60px).
+- **DotBadge**: de dot is een derde van `icon.size.md` (8 → 10px), de offsets zijn `space.block.sm` en `space.inline.sm`.
+- **Card**: het icoon in de afbeeldingsplaceholder krijgt het nieuwe token `--dsn-card-image-placeholder-icon-size` (`icon.size.2xl`, 40 → 50px). Eerder stond die maat hardcoded in de CSS.
+- **Popover en PopoverMenu**: de afstand tot de trigger is `space.block.sm` en `space.inline.sm` in plaats van een hardcoded 0.25rem.
+- **DateInput en TimeInput**: de 1px padding die Chromium boven en onder de datum- en tijdvelden zet, is weg. Op een brede viewport werden deze velden daardoor 2px hoger dan een gewone text input.
+
+In Figma:
+
+- **Meetbreedte**: de matrices van `figma-sync` meten op 360px in plaats van 375px. Blok-componenten zijn daardoor 328px breed in plaats van 343px. De mobile- en desktop-modes van `dsn/Density` vallen zo precies op de grenzen van de fluid schaal.
+- **Afgeleide fluid waarden**: waarden die alleen van viewport en density afhangen, krijgen nu een waarde per viewport in `dsn/Density`, in plaats van een op 1440px vastgeprikte waarde in `dsn/Primitives`. Waar de bron naar een spacing- of font-size-token verwijst, is het een alias. Het gaat om `form-control/font-size`, `form-control/padding-inline-*` en `icon/size/4xl`.
+- **Nog steeds vastgeprikt**: vijftien waarden die ook per theme verschillen, zoals de icon-sizes sm t/m 3xl en `form-control/padding-block-*`, staan nog op 1440px. Ze staan als `viewportPinned` in het report.
+
+Documentatie:
+
+- **Storybook**: "Foundations/Design Tokens" heeft een nieuwe sectie "Fluid Scale" met een live demo. Die laat zien waar de huidige viewport op de schaal zit en wat de fluid tokens daar opleveren. De tabellen voor font-sizes en spacing tonen min → max in plaats van de oude vaste waarden en clamps.
+- **Docs**: `docs/02-design-tokens-reference.md` en `docs/01-architecture.md` beschrijven de min- en max-tokens, `fluid()` en de drie densities.
+- **Beslisdocument**: DR-2026-13 legt vast waarom we kozen voor min/max per maat, uitgerekend in de build.
+
+Bewust vast gebleven:
+
+- het klikdoel van 3rem en de small button van 2.5rem;
+- de ruimte voor password managers;
+- layoutbreedtes, zoals Drawer, Popover, ModalDialog, Grid, Page en de minimale card-breedte;
+- de logohoogte, de dikte van de ProgressBar en de navbar-hoogte van PageHeader;
+- de scrollschaduwen, onderstrepingen en randen.
+
 ### Figma-plugin: lettertypes laden vóór de variables
 
 Een wissel van lettertype in een bestaande Figma-bibliotheek brak de variables-import af met "unloaded font". Een font-family-variable die al aan tekstlagen hangt, zet die lagen bij een nieuwe waarde direct om, en Figma weigert dat zolang het lettertype niet geladen is. De plugin laadt nu eerst elke familie uit de font-family-variables, in al haar stijlen, en schrijft daarna de waardes. Een familie die Figma niet kent levert een waarschuwing op in plaats van een fout. De mock van de smoke test stelt dezelfde eis.

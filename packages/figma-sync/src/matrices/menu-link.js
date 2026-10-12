@@ -26,7 +26,7 @@ export default {
     '@dsn-starter-kit/components-html/src/menu-link/menu-link.css',
   ],
 
-  wrapperStyle: 'width: 343px;',
+  wrapperStyle: 'width: 328px;',
 
   axes: {
     level: ['1', '2', '3'],

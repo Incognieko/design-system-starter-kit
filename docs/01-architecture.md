@@ -200,22 +200,26 @@ Component CSS → Component Tokens → Semantic Tokens → Values
 
 Tokens are organized in a **three-axis configuration model** that enables flexible theming:
 
-| Axis             | Values                         | Affects                                                  |
-| ---------------- | ------------------------------ | -------------------------------------------------------- |
-| **Theme**        | `start`, `wireframe`, ...      | All tokens (typography, spacing, borders, focus, colors) |
-| **Mode**         | `light`, `dark`                | Only color tokens                                        |
-| **Project Type** | `default`, `information-dense` | Only font-size tokens                                    |
+| Axis             | Values                                                | Affects                                                  |
+| ---------------- | ----------------------------------------------------- | -------------------------------------------------------- |
+| **Theme**        | `start`, `wireframe`, ...                             | All tokens (typography, spacing, borders, focus, colors) |
+| **Mode**         | `light`, `dark`                                       | Only color tokens                                        |
+| **Project Type** | `default`, `default-fixed-space`, `information-dense` | Which scales are fluid: font sizes and spacing           |
 
-This creates a matrix of configurations: **Theme × Mode × Project Type = 8 combinations**
+This creates a matrix of configurations: **Theme × Mode × Project Type = 12 combinations**
 
 ```
 start-light-default
+start-light-default-fixed-space
 start-light-information-dense
 start-dark-default
+start-dark-default-fixed-space
 start-dark-information-dense
 wireframe-light-default
+wireframe-light-default-fixed-space
 wireframe-light-information-dense
 wireframe-dark-default
+wireframe-dark-default-fixed-space
 wireframe-dark-information-dense
 ```
 
@@ -223,19 +227,21 @@ wireframe-dark-information-dense
 
 - **Theme**: Defines the visual identity/branding. Different clients or products can have their own theme while sharing the same component library.
 - **Mode**: Light/dark color schemes. Users can switch modes without changing the theme.
-- **Project Type**: Typography density. Information-dense applications (dashboards, data tables) use fixed font sizes, while marketing sites use fluid typography.
+- **Project Type**: Density. `default` lets font sizes and spacing grow with the viewport (360px → 1440px), `default-fixed-space` only the font sizes, and `information-dense` (dashboards, data tables) keeps both fixed. The min and max values per size live in the theme; the project type only decides which sizes use them fluidly. See the fluid scale section in `02-design-tokens-reference.md`.
 
 ### Token File Distribution
 
 | Token Category                                | Location                               | Axis                   |
 | --------------------------------------------- | -------------------------------------- | ---------------------- |
 | Typography (font-family, weight, line-height) | `themes/{name}/base.json`              | Theme                  |
-| Spacing                                       | `themes/{name}/base.json`              | Theme                  |
+| Spacing (min/max per size)                    | `themes/{name}/base.json`              | Theme                  |
+| Fluid spacing                                 | `project-types/default/space.json`     | Project Type           |
 | Sizing                                        | `themes/{name}/base.json`              | Theme                  |
 | Borders                                       | `themes/{name}/base.json`              | Theme                  |
 | Focus                                         | `themes/{name}/base.json`              | Theme                  |
 | Colors                                        | `themes/{name}/colors-{mode}.json`     | Theme + Mode           |
-| Font sizes                                    | `project-types/{name}/typography.json` | Project Type           |
+| Font sizes (min/max per size)                 | `themes/{name}/base.json`              | Theme                  |
+| Font sizes (fluid or fixed)                   | `project-types/{name}/typography.json` | Project Type           |
 | Component tokens                              | `components/*.json`                    | N/A (references above) |
 
 ### Build System
@@ -246,9 +252,9 @@ The build system generates all configurations automatically:
 // config.js
 const themes = ['start', 'wireframe'];
 const modes = ['light', 'dark'];
-const projectTypes = ['default', 'information-dense'];
+const projectTypes = ['default', 'default-fixed-space', 'information-dense'];
 
-// Generates 8 full configurations
+// Generates 12 full configurations
 for (const theme of themes) {
   for (const mode of modes) {
     for (const projectType of projectTypes) {
@@ -353,30 +359,34 @@ A minimal theme for prototyping and development.
    └── typography.json
    ```
 
-2. Define font-size tokens (must include all sizes: sm, md, lg, xl, 2xl, 3xl, 4xl):
+2. Define all font sizes (sm, md, lg, xl, 2xl, 3xl, 4xl). Refer to the min and max tokens of the theme: `fluid({min}, {max})` grows with the viewport, a single reference stays fixed.
 
    ```json
    {
      "dsn": {
        "text": {
          "font-size": {
-           "sm": { "value": "0.75rem" },
-           "md": { "value": "0.875rem" },
-           "lg": { "value": "1rem" },
-           "xl": { "value": "1.125rem" },
-           "2xl": { "value": "1.25rem" },
-           "3xl": { "value": "1.5rem" },
-           "4xl": { "value": "1.875rem" }
+           "sm": {
+             "$value": "fluid({dsn.text.font-size.min.sm}, {dsn.text.font-size.max.sm})"
+           },
+           "md": { "$value": "{dsn.text.font-size.min.md}" }
          }
        }
      }
    }
    ```
 
-3. Update `src/config/config.js`:
+   Spacing works the same way (see `project-types/default/space.json`). Without a spacing file, the spacing falls back to the fixed min values of the theme.
+
+3. Update `src/config/config.js`: add the name to `projectTypes`, its source files to `projectTypeSources` and a class to `densitySelectors`:
 
    ```js
-   const projectTypes = ['default', 'information-dense', 'my-density'];
+   const projectTypes = [
+     'default',
+     'default-fixed-space',
+     'information-dense',
+     'my-density',
+   ];
    ```
 
 4. Build.

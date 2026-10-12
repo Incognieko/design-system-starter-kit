@@ -29,7 +29,7 @@ export default {
     '@dsn-starter-kit/components-html/src/heading-group/heading-group.css',
   ],
 
-  wrapperStyle: 'width: 343px;',
+  wrapperStyle: 'width: 328px;',
 
   axes: {
     appearance: ['heading-1', 'heading-2', 'heading-3', 'heading-4'],

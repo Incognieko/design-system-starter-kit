@@ -27,7 +27,7 @@ export default {
     '@dsn-starter-kit/components-html/src/text-area/text-area.css',
   ],
 
-  wrapperStyle: 'width: 343px;',
+  wrapperStyle: 'width: 328px;',
 
   axes: {
     state: ['default', 'hover', 'focus'],

@@ -26,8 +26,8 @@ export default {
     '@dsn-starter-kit/components-html/src/progress-bar/progress-bar.css',
   ],
 
-  // Mobile-first: 375px viewport met 16px padding aan weerszijden.
-  wrapperStyle: 'width: 343px;',
+  // Mobile-first: 360px viewport met 16px padding aan weerszijden.
+  wrapperStyle: 'width: 328px;',
 
   axes: {
     value: ['with-value', 'no-value'],

@@ -54,3 +54,11 @@
 .dsn-date-input::-webkit-inner-spin-button {
   display: none;
 }
+
+/* Chromium geeft de datum/tijd-velden 1px padding boven en onder. Bij een
+   grotere font-size (fluid type scale op een brede viewport) wordt het veld
+   daardoor 2px hoger dan een gewone text input. */
+.dsn-date-input::-webkit-datetime-edit,
+.dsn-date-input::-webkit-datetime-edit-fields-wrapper {
+  padding-block: 0;
+}

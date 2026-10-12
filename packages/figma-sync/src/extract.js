@@ -395,11 +395,11 @@ const BASE_CSS = ['@dsn-starter-kit/components-html/src/body/body.css'];
 const BODY_CLASS = 'dsn-body';
 
 /**
- * Meetviewport. Mobile-first: een small-viewport ontwerp is 375px breed, en
+ * Meetviewport. Mobile-first: een small-viewport ontwerp is 360px breed, en
  * daar lossen de fluid clamps op hun ondergrens op. De gemeten typografie komt
  * daarmee overeen met de `default-mobile` mode van de Density-collection.
  */
-const DEFAULT_VIEWPORT = { width: 375, height: 900 };
+const DEFAULT_VIEWPORT = { width: 360, height: 900 };
 
 /**
  * Extra breedte voor de tweede meting waarmee flexibele grid-tracks worden
@@ -465,7 +465,7 @@ export async function extractMatrix(matrix) {
    *
    * Normaal geldt `matrix.viewport` voor de hele matrix. Een component met
    * layouts die elkaar per viewport aflossen heeft dat niet genoeg: de
-   * large-layout van PageHeader is onder 64em `display: none` en levert op 375
+   * large-layout van PageHeader is onder 64em `display: none` en levert op 360
    * niets op om te meten. Zo'n matrix zet `viewports` neer en wijst met
    * `viewportAxis` de as aan die ertussen kiest, en dan meet elke variant op
    * zijn eigen breedte.

@@ -48,10 +48,10 @@ export default {
   },
 
   /**
-   * Mobile-first: een small-viewport ontwerp is 375px breed met 16px padding
-   * links en rechts, dus een blok-component is in de basis 343px.
+   * Mobile-first: een small-viewport ontwerp is 360px breed met 16px padding
+   * links en rechts, dus een blok-component is in de basis 328px.
    */
-  wrapperStyle: 'width: 343px;',
+  wrapperStyle: 'width: 328px;',
 
   render({ variant, icon }) {
     const classes = [
