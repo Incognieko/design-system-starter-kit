@@ -22,7 +22,7 @@ export default {
     '@dsn-starter-kit/components-html/src/radio-group/radio-group.css',
   ],
 
-  wrapperStyle: 'width: 343px;',
+  wrapperStyle: 'width: 328px;',
 
   axes: {
     options: ['two-options', 'three-options'],

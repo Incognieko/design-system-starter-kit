@@ -25,7 +25,11 @@ Het component is een key-value lijst op basis van `<dl>` en wordt breder gebruik
 
 In Figma maakt de eerstvolgende import een nieuwe component set `DataList` aan. De bestaande set `SummaryList` blijft staan en moet met de hand worden opgeruimd of vooraf hernoemd.
 
-### Fluid spacing naast de fluid type scale
+## Version 4.3.0 (October 12, 2026)
+
+Minor release. Spacing groeit nu mee met de viewport, net als tekst. Token-namen, markup en API's blijven gelijk. Wel veranderen er waardes: projecten op de density `default` krijgen op brede schermen meer ruimte. Buttons en formuliervelden worden daar 52px hoog in plaats van 48px, en 48px blijft het minimum. Wie het oude gedrag wil houden, kiest de nieuwe density `default-fixed-space`. Daarnaast meet figma-sync meer componenten in hun desktopstand, en zijn een paar sets in Figma eenvoudiger geworden.
+
+### Fluid spacing naast de fluid type scale (PR #446)
 
 Ruimte groeit nu mee met de viewport, net als tekst. Elke maat heeft in het thema een min-waarde (op 360px) en een max-waarde (op 1440px): `dsn.text.font-size.min.*` / `max.*` en `dsn.space.{block,inline,text,column,row}.min.*` / `max.*`. Het bereik zelf staat in `dsn.viewport.min-inline-size` en `max-inline-size`. Standaard is elke max de min × 1.25. Maten van 1px en 2px schalen niet mee, en het klikdoel (`dsn.pointer-target`, 3rem) blijft vast.
 
@@ -37,7 +41,49 @@ Een project-type kiest per maat met `fluid({min}, {max})` of hij meegroeit. De b
 
 Ook voor tekst verandert er iets. Medium gaat nu van 16px naar 20px tussen 360px en 1440px. Eerder was dat 16px naar 20,5px tot ongeveer 1730px. Icons, checkboxes en radio's volgen de font-size, dus die schalen vanzelf mee. In de Figma-export staat de spacing nu in de `dsn/Density`-collection, met een mobile- en een desktop-mode op 360px en 1440px.
 
-### Figma-plugin: lettertypes laden vóór de variables
+Componenten met een vaste maat die bij de tekst hoort, schalen nu mee:
+
+- **Spinner**: `--dsn-spinner-size` is `icon.size.md` (24 → 30px), de grote variant is het dubbele (48 → 60px).
+- **File**: `--dsn-file-media-size` is twee keer `icon.size.md` (48 → 60px).
+- **DotBadge**: de dot is een derde van `icon.size.md` (8 → 10px), de offsets zijn `space.block.sm` en `space.inline.sm`.
+- **Card**: het icoon in de afbeeldingsplaceholder krijgt het nieuwe token `--dsn-card-image-placeholder-icon-size` (`icon.size.2xl`, 40 → 50px). Eerder stond die maat hardcoded in de CSS.
+- **Popover en PopoverMenu**: de afstand tot de trigger is `space.block.sm` en `space.inline.sm` in plaats van een hardcoded 0.25rem.
+- **DateInput en TimeInput**: de 1px padding die Chromium boven en onder de datum- en tijdvelden zet, is weg. Op een brede viewport werden deze velden daardoor 2px hoger dan een gewone text input.
+
+In Figma:
+
+- **Meetbreedte**: de matrices van `figma-sync` meten op 360px in plaats van 375px. Blok-componenten zijn daardoor 328px breed in plaats van 343px. De mobile- en desktop-modes van `dsn/Density` vallen zo precies op de grenzen van de fluid schaal.
+- **Afgeleide fluid waarden**: waarden die alleen van viewport en density afhangen, krijgen nu een waarde per viewport in `dsn/Density`, in plaats van een op 1440px vastgeprikte waarde in `dsn/Primitives`. Waar de bron naar een spacing- of font-size-token verwijst, is het een alias. Het gaat om `form-control/font-size`, `form-control/padding-inline-*` en `icon/size/4xl`.
+- **Nog steeds vastgeprikt**: vijftien waarden die ook per theme verschillen, zoals de icon-sizes sm t/m 3xl en `form-control/padding-block-*`, staan nog op 1440px. Ze staan als `viewportPinned` in het report.
+
+Documentatie:
+
+- **Storybook**: "Foundations/Design Tokens" heeft een nieuwe sectie "Fluid Scale" met een live demo. Die laat zien waar de huidige viewport op de schaal zit en wat de fluid tokens daar opleveren. De tabellen voor font-sizes en spacing tonen min → max in plaats van de oude vaste waarden en clamps.
+- **Docs**: `docs/02-design-tokens-reference.md` en `docs/01-architecture.md` beschrijven de min- en max-tokens, `fluid()` en de drie densities.
+- **Beslisdocument**: DR-2026-13 legt vast waarom we kozen voor min/max per maat, uitgerekend in de build.
+
+Bewust vast gebleven:
+
+- het klikdoel van 3rem en de small button van 2.5rem;
+- de ruimte voor password managers;
+- layoutbreedtes, zoals Drawer, Popover, ModalDialog, Grid, Page en de minimale card-breedte;
+- de logohoogte, de dikte van de ProgressBar en de navbar-hoogte van PageHeader;
+- de scrollschaduwen, onderstrepingen en randen.
+
+### Figma-sync: desktopvarianten en een eenvoudiger panel (PR #432 t/m #445)
+
+Een reeks verbeteringen uit de setcontrole van de gegenereerde Figma-componenten:
+
+- **Desktopvarianten**: PageHeader, PageFooter, SummaryList en BreadcrumbNavigation hebben een `viewport`-as met een small- en een large-variant. Elke variant wordt op zijn eigen viewportbreedte gemeten en geverifieerd tegen de bijbehorende mode van `dsn/Density`. Bij SummaryList komt daarmee ook de brede weergave met subgrid mee, bij PageFooter de vierkolommenstand (#438, #442, #443, #445).
+- **Grid-plaatsing**: kinderen met `grid-column: span n` en automatische plaatsing komen nu mee in plaats van met een waarschuwing te vervallen. De plugin gebruikt de juiste waarde `ROW_AUTO_FLOW`, en een geweigerde plaatsingsstand is een waarschuwing in plaats van het einde van de import (#442, #444).
+- **Minder assen**: CheckboxOption, RadioOption, FormFieldDescription, FormFieldErrorMessage en NumberBadge hebben geen as meer voor tekstlengte of aantal. Het frame groeit met zijn inhoud mee (`hugRoot`), en dat scheelt 11 varianten (#432).
+- **Losse componenten**: een matrix zonder assen wordt een los component in plaats van een set met één optie. Dat geldt voor PreHeading, Logo, FormFieldLabel, FormFieldDescription en FormFieldErrorMessage. Eenmalig gaan daardoor de bestaande instances van die vijf verloren (#437).
+- **FormFieldLabel**: het suffix is een schakelaar met een eigen tekst-property (#435).
+- **Toestanden**: `:active` is een gemeten toestand, en Checkbox en Radio hebben een eigen `invalid`-as (#433).
+- **Details**: de dichte stand is in Figma echt dicht en de chevron draait mee (#434).
+- **Note**: een Note zonder kop heeft één grid-rij in plaats van een lege tweede rij (#436).
+
+### Figma-plugin: lettertypes laden vóór de variables (PR #431)
 
 Een wissel van lettertype in een bestaande Figma-bibliotheek brak de variables-import af met "unloaded font". Een font-family-variable die al aan tekstlagen hangt, zet die lagen bij een nieuwe waarde direct om, en Figma weigert dat zolang het lettertype niet geladen is. De plugin laadt nu eerst elke familie uit de font-family-variables, in al haar stijlen, en schrijft daarna de waardes. Een familie die Figma niet kent levert een waarschuwing op in plaats van een fout. De mock van de smoke test stelt dezelfde eis.
 

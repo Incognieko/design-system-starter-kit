@@ -159,6 +159,11 @@
           "$value": "{dsn.color.neutral.color-subtle}",
           "$type": "color",
           "$description": "Kleur van het icoon in de afbeeldingsplaceholder"
+        },
+        "icon-size": {
+          "$value": "{dsn.icon.size.2xl}",
+          "$type": "dimension",
+          "$description": "Grootte van het icoon in de afbeeldingsplaceholder — schaalt mee met de fluid type scale (40–50px)"
         }
       },
       "heading": {

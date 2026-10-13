@@ -28,7 +28,7 @@ export default {
     '@dsn-starter-kit/components-html/src/file/file.css',
   ],
 
-  wrapperStyle: 'width: 343px;',
+  wrapperStyle: 'width: 328px;',
 
   axes: {
     variant: ['default', 'error'],

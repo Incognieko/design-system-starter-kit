@@ -7,7 +7,7 @@
  * in `grid.css` achter `@media (min-width: 64em)`, dus de vier slots stapelen
  * op een telefoon en staan vanaf 64em in vier kolommen naast elkaar.
  *
- * Daarom meet deze matrix op twee viewports: `small` op 375px en `large` op
+ * Daarom meet deze matrix op twee viewports: `small` op 360px en `large` op
  * 1440px. Een footer loopt van rand tot rand en zet zijn eigen
  * `padding-inline`, dus de wrapper is net zo breed als de viewport.
  *
@@ -73,7 +73,7 @@ export default {
 
   viewportAxis: 'viewport',
   viewports: {
-    small: { width: 375, wrapperStyle: 'width: 375px;' },
+    small: { width: 360, wrapperStyle: 'width: 360px;' },
     large: { width: 1440, wrapperStyle: 'width: 1440px;' },
   },
 

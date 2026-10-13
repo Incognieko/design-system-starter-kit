@@ -87,7 +87,7 @@ Bij dynamisch bijwerken van de dot (bijv. nieuwe berichten binnenkomen): voeg `a
 
 | Token                                   | Beschrijving                                      |
 | --------------------------------------- | ------------------------------------------------- |
-| `--dsn-dot-badge-size`                  | Diameter van de dot (8px)                         |
+| `--dsn-dot-badge-size`                  | Diameter van de dot (8–10px, fluid)               |
 | `--dsn-dot-badge-color`                 | Achtergrondkleur: wordt per variant ingesteld     |
 | `--dsn-dot-badge-inset-block-start`     | Verticale offset t.o.v. rechterbovenhoek parent   |
 | `--dsn-dot-badge-inset-inline-end`      | Horizontale offset t.o.v. rechterbovenhoek parent |

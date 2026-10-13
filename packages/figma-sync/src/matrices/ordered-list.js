@@ -21,7 +21,7 @@ export default {
     '@dsn-starter-kit/components-html/src/ordered-list/ordered-list.css',
   ],
 
-  wrapperStyle: 'width: 343px;',
+  wrapperStyle: 'width: 328px;',
 
   warnings: [
     'de nummers ontbreken: `::marker` is een pseudo-element en geen DOM-node, dus er valt niets te meten. De inspringing en de afstand tussen items komen wel mee; zet de nummering in Figma met een lijststijl.',

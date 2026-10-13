@@ -26,7 +26,7 @@ export default {
     '@dsn-starter-kit/components-html/src/unordered-list/unordered-list.css',
   ],
 
-  wrapperStyle: 'width: 343px;',
+  wrapperStyle: 'width: 328px;',
 
   warnings: [
     'de bolletjes ontbreken: `::marker` is een pseudo-element en geen DOM-node, dus er valt niets te meten. De inspringing en de afstand tussen items komen wel mee; zet het bolletje in Figma met een lijststijl.',

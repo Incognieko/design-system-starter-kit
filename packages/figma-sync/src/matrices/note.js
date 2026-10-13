@@ -46,8 +46,8 @@ export default {
     '@dsn-starter-kit/components-html/src/note/note.css',
   ],
 
-  // Mobile-first: 375px viewport met 16px padding aan weerszijden.
-  wrapperStyle: 'width: 343px;',
+  // Mobile-first: 360px viewport met 16px padding aan weerszijden.
+  wrapperStyle: 'width: 328px;',
 
   axes: {
     variant: ['neutral', 'info', 'positive', 'negative', 'warning'],

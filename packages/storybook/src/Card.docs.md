@@ -98,6 +98,7 @@ De tokens van de pre-header verwijzen standaard naar die van de header: pas je d
 | `--dsn-card-footer-column-gap`                                   | Ruimte tussen kinderen van de footer                              |
 | `--dsn-card-image-placeholder-background-color`                  | Achtergrond van de afbeeldingsplaceholder                         |
 | `--dsn-card-image-placeholder-color`                             | Kleur van het icoon in de placeholder                             |
+| `--dsn-card-image-placeholder-icon-size`                         | Grootte van het icoon in de placeholder (40–50px, fluid)          |
 | `--dsn-card-heading-font-family` / `-font-size` / `-font-weight` | Typografie van de card heading                                    |
 | `--dsn-card-heading-line-height` / `-color`                      | Regelafstand en kleur van de card heading                         |
 | `--dsn-card-label-font-family` / `-font-size` / `-font-weight`   | Typografie van het card-label                                     |

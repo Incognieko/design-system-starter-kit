@@ -7,7 +7,7 @@
  * Twee weergaven, en ze staan allebei in Figma. Onder 44em is de rij een
  * gestapelde flexkolom; vanaf 44em zet de CSS de lijst op `display: grid` met
  * drie kolommen en de rij op `grid-template-columns: subgrid`. De `viewport`-as
- * kiest de meetbreedte: `small` op 375px met een wrapper van 343, `large` op
+ * kiest de meetbreedte: `small` op 360px met een wrapper van 328, `large` op
  * 1440px met een wrapper van 1168. Die 1168 is waar DataList in een pagina
  * staat: `--dsn-page-max-inline-size` (75rem) min twee keer
  * `--dsn-page-body-padding-inline` (16px).
@@ -43,7 +43,7 @@ export default {
   // moet wel 1440 zijn, want de layout-switch is een media query op 44em.
   viewportAxis: 'viewport',
   viewports: {
-    small: { width: 375, wrapperStyle: 'width: 343px;' },
+    small: { width: 360, wrapperStyle: 'width: 328px;' },
     large: { width: 1440, wrapperStyle: 'width: 1168px;' },
   },
 

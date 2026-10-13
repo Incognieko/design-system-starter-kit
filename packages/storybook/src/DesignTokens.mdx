@@ -3,6 +3,7 @@ import { TokenTable } from './components/TokenTable';
 import { TokenControls } from './components/TokenControls';
 import { OrderedList } from '@dsn-starter-kit/components-react';
 import { TocLink } from './components/TocLink';
+import { FluidScaleDemo } from './components/FluidScaleDemo';
 
 <Meta title="Foundations/Design Tokens" />
 
@@ -20,6 +21,9 @@ Design tokens are the single source of truth for colors, typography, spacing, bo
   </li>
   <li>
     <TocLink targetId="inverse-colors">Inverse Colors</TocLink>
+  </li>
+  <li>
+    <TocLink targetId="fluid-scale">Fluid Scale</TocLink>
   </li>
   <li>
     <TocLink targetId="typography">Typography</TocLink>
@@ -1438,6 +1442,55 @@ All alias accent-1-inverse by default. Available CSS variables:
 
 ---
 
+## Fluid Scale
+
+Font sizes and spacing grow with the viewport. Every size has a **min** value at the smallest viewport (`--dsn-viewport-min-inline-size`, 360px) and a **max** value at the largest viewport (`--dsn-viewport-max-inline-size`, 1440px). In between, the value grows in a straight line; outside that range it stays at min or max. By default every max is the min × 1.25. Sizes of 1px and 2px and the pointer target (3rem) do not scale.
+
+The min and max values live in the theme (`dsn.text.font-size.min.*` / `max.*`, `dsn.space.*.min.*` / `max.*`), so an organisation can deviate per size. The build turns each pair into a `clamp()`.
+
+Which scales are fluid depends on the **density** (toolbar):
+
+{/* HTML-tabel: deze Storybook-MDX heeft geen remark-gfm, dus Markdown-tabellen renderen als tekst. */}
+
+<table>
+  <thead>
+    <tr>
+      <th>Density</th>
+      <th>Font sizes</th>
+      <th>Spacing</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>
+        <code>default</code>
+      </td>
+      <td>fluid</td>
+      <td>fluid</td>
+    </tr>
+    <tr>
+      <td>
+        <code>default-fixed-space</code>
+      </td>
+      <td>fluid</td>
+      <td>fixed (min values)</td>
+    </tr>
+    <tr>
+      <td>
+        <code>information-dense</code>
+      </td>
+      <td>fixed (min values)</td>
+      <td>fixed (min values)</td>
+    </tr>
+  </tbody>
+</table>
+
+Icons, checkboxes and radios follow the font size, so they scale along. Resize the window to see the values below change:
+
+<FluidScaleDemo />
+
+---
+
 ## Typography
 
 ### Font Families
@@ -1470,37 +1523,37 @@ All alias accent-1-inverse by default. Available CSS variables:
     {
       name: 'sm',
       cssVar: '--dsn-text-font-size-sm',
-      value: 'clamp(0.875rem, 0.75rem + 0.25vw, 1.0625rem)',
+      value: '14px → 17.5px (fluid)',
     },
     {
       name: 'md',
       cssVar: '--dsn-text-font-size-md',
-      value: 'clamp(1rem, 0.875rem + 0.375vw, 1.28125rem)',
+      value: '16px → 20px (fluid)',
     },
     {
       name: 'lg',
       cssVar: '--dsn-text-font-size-lg',
-      value: 'clamp(1.25rem, 1.125rem + 0.375vw, 1.53125rem)',
+      value: '20px → 25px (fluid)',
     },
     {
       name: 'xl',
       cssVar: '--dsn-text-font-size-xl',
-      value: 'clamp(1.5rem, 1.25rem + 0.625vw, 1.9375rem)',
+      value: '24px → 30px (fluid)',
     },
     {
       name: '2xl',
       cssVar: '--dsn-text-font-size-2xl',
-      value: 'clamp(2rem, 1.75rem + 0.75vw, 2.5625rem)',
+      value: '32px → 40px (fluid)',
     },
     {
       name: '3xl',
       cssVar: '--dsn-text-font-size-3xl',
-      value: 'clamp(2.5rem, 2.125rem + 1.125vw, 3.3125rem)',
+      value: '40px → 50px (fluid)',
     },
     {
       name: '4xl',
       cssVar: '--dsn-text-font-size-4xl',
-      value: 'clamp(3rem, 2.5rem + 1.5vw, 4.125rem)',
+      value: '48px → 60px (fluid)',
     },
   ]}
 />
@@ -1533,7 +1586,7 @@ All alias accent-1-inverse by default. Available CSS variables:
 
 ## Spacing
 
-All spacing is based on a `0.5rem` (8px) base unit, following an 8-point grid system.
+All spacing is based on a `0.5rem` (8px) base unit, following an 8-point grid system. The values below show min → max for the `default` density (see [Fluid Scale](#fluid-scale)).
 The system defines five spacing concepts: **row** (vertical between components), **column** (horizontal between components), **inline** (horizontal within components), **block** (vertical within components), and **text** (between text and icons).
 
 ### None
@@ -1551,57 +1604,57 @@ The system defines five spacing concepts: **row** (vertical between components),
     {
       name: '2xs',
       cssVar: '--dsn-space-row-2xs',
-      value: 'calc(0.5rem * 0.125) = 1px',
+      value: '1px (fixed)',
     },
     {
       name: 'xs',
       cssVar: '--dsn-space-row-xs',
-      value: 'calc(0.5rem * 0.25) = 2px',
+      value: '2px (fixed)',
     },
     {
       name: 'sm',
       cssVar: '--dsn-space-row-sm',
-      value: 'calc(0.5rem * 0.5) = 4px',
+      value: '4px → 5px (fluid)',
     },
     {
       name: 'md',
       cssVar: '--dsn-space-row-md',
-      value: 'calc(0.5rem * 1) = 8px',
+      value: '8px → 10px (fluid)',
     },
     {
       name: 'lg',
       cssVar: '--dsn-space-row-lg',
-      value: 'calc(0.5rem * 1.5) = 12px',
+      value: '12px → 15px (fluid)',
     },
     {
       name: 'xl',
       cssVar: '--dsn-space-row-xl',
-      value: 'calc(0.5rem * 2) = 16px',
+      value: '16px → 20px (fluid)',
     },
     {
       name: '2xl',
       cssVar: '--dsn-space-row-2xl',
-      value: 'calc(0.5rem * 2.5) = 20px',
+      value: '20px → 25px (fluid)',
     },
     {
       name: '3xl',
       cssVar: '--dsn-space-row-3xl',
-      value: 'calc(0.5rem * 3) = 24px',
+      value: '24px → 30px (fluid)',
     },
     {
       name: '4xl',
       cssVar: '--dsn-space-row-4xl',
-      value: 'calc(0.5rem * 4) = 32px',
+      value: '32px → 40px (fluid)',
     },
     {
       name: '5xl',
       cssVar: '--dsn-space-row-5xl',
-      value: 'calc(0.5rem * 8) = 64px',
+      value: '64px → 80px (fluid)',
     },
     {
       name: '6xl',
       cssVar: '--dsn-space-row-6xl',
-      value: 'calc(0.5rem * 20) = 160px',
+      value: '160px → 200px (fluid)',
     },
   ]}
 />
@@ -1614,57 +1667,57 @@ The system defines five spacing concepts: **row** (vertical between components),
     {
       name: '2xs',
       cssVar: '--dsn-space-column-2xs',
-      value: 'calc(0.5rem * 0.125) = 1px',
+      value: '1px (fixed)',
     },
     {
       name: 'xs',
       cssVar: '--dsn-space-column-xs',
-      value: 'calc(0.5rem * 0.25) = 2px',
+      value: '2px (fixed)',
     },
     {
       name: 'sm',
       cssVar: '--dsn-space-column-sm',
-      value: 'calc(0.5rem * 0.5) = 4px',
+      value: '4px → 5px (fluid)',
     },
     {
       name: 'md',
       cssVar: '--dsn-space-column-md',
-      value: 'calc(0.5rem * 1) = 8px',
+      value: '8px → 10px (fluid)',
     },
     {
       name: 'lg',
       cssVar: '--dsn-space-column-lg',
-      value: 'calc(0.5rem * 1.5) = 12px',
+      value: '12px → 15px (fluid)',
     },
     {
       name: 'xl',
       cssVar: '--dsn-space-column-xl',
-      value: 'calc(0.5rem * 2) = 16px',
+      value: '16px → 20px (fluid)',
     },
     {
       name: '2xl',
       cssVar: '--dsn-space-column-2xl',
-      value: 'calc(0.5rem * 2.5) = 20px',
+      value: '20px → 25px (fluid)',
     },
     {
       name: '3xl',
       cssVar: '--dsn-space-column-3xl',
-      value: 'calc(0.5rem * 3) = 24px',
+      value: '24px → 30px (fluid)',
     },
     {
       name: '4xl',
       cssVar: '--dsn-space-column-4xl',
-      value: 'calc(0.5rem * 4) = 32px',
+      value: '32px → 40px (fluid)',
     },
     {
       name: '5xl',
       cssVar: '--dsn-space-column-5xl',
-      value: 'calc(0.5rem * 8) = 64px',
+      value: '64px → 80px (fluid)',
     },
     {
       name: '6xl',
       cssVar: '--dsn-space-column-6xl',
-      value: 'calc(0.5rem * 20) = 160px',
+      value: '160px → 200px (fluid)',
     },
   ]}
 />
@@ -1677,57 +1730,57 @@ The system defines five spacing concepts: **row** (vertical between components),
     {
       name: '2xs',
       cssVar: '--dsn-space-inline-2xs',
-      value: 'calc(0.5rem * 0.125) = 1px',
+      value: '1px (fixed)',
     },
     {
       name: 'xs',
       cssVar: '--dsn-space-inline-xs',
-      value: 'calc(0.5rem * 0.25) = 2px',
+      value: '2px (fixed)',
     },
     {
       name: 'sm',
       cssVar: '--dsn-space-inline-sm',
-      value: 'calc(0.5rem * 0.5) = 4px',
+      value: '4px → 5px (fluid)',
     },
     {
       name: 'md',
       cssVar: '--dsn-space-inline-md',
-      value: 'calc(0.5rem * 1) = 8px',
+      value: '8px → 10px (fluid)',
     },
     {
       name: 'lg',
       cssVar: '--dsn-space-inline-lg',
-      value: 'calc(0.5rem * 1.5) = 12px',
+      value: '12px → 15px (fluid)',
     },
     {
       name: 'xl',
       cssVar: '--dsn-space-inline-xl',
-      value: 'calc(0.5rem * 2) = 16px',
+      value: '16px → 20px (fluid)',
     },
     {
       name: '2xl',
       cssVar: '--dsn-space-inline-2xl',
-      value: 'calc(0.5rem * 2.5) = 20px',
+      value: '20px → 25px (fluid)',
     },
     {
       name: '3xl',
       cssVar: '--dsn-space-inline-3xl',
-      value: 'calc(0.5rem * 3) = 24px',
+      value: '24px → 30px (fluid)',
     },
     {
       name: '4xl',
       cssVar: '--dsn-space-inline-4xl',
-      value: 'calc(0.5rem * 4) = 32px',
+      value: '32px → 40px (fluid)',
     },
     {
       name: '5xl',
       cssVar: '--dsn-space-inline-5xl',
-      value: 'calc(0.5rem * 6) = 48px',
+      value: '48px → 60px (fluid)',
     },
     {
       name: '6xl',
       cssVar: '--dsn-space-inline-6xl',
-      value: 'calc(0.5rem * 8) = 64px',
+      value: '64px → 80px (fluid)',
     },
   ]}
 />
@@ -1740,57 +1793,57 @@ The system defines five spacing concepts: **row** (vertical between components),
     {
       name: '2xs',
       cssVar: '--dsn-space-block-2xs',
-      value: 'calc(0.5rem * 0.125) = 1px',
+      value: '1px (fixed)',
     },
     {
       name: 'xs',
       cssVar: '--dsn-space-block-xs',
-      value: 'calc(0.5rem * 0.25) = 2px',
+      value: '2px (fixed)',
     },
     {
       name: 'sm',
       cssVar: '--dsn-space-block-sm',
-      value: 'calc(0.5rem * 0.5) = 4px',
+      value: '4px → 5px (fluid)',
     },
     {
       name: 'md',
       cssVar: '--dsn-space-block-md',
-      value: 'calc(0.5rem * 1) = 8px',
+      value: '8px → 10px (fluid)',
     },
     {
       name: 'lg',
       cssVar: '--dsn-space-block-lg',
-      value: 'calc(0.5rem * 1.5) = 12px',
+      value: '12px → 15px (fluid)',
     },
     {
       name: 'xl',
       cssVar: '--dsn-space-block-xl',
-      value: 'calc(0.5rem * 2) = 16px',
+      value: '16px → 20px (fluid)',
     },
     {
       name: '2xl',
       cssVar: '--dsn-space-block-2xl',
-      value: 'calc(0.5rem * 2.5) = 20px',
+      value: '20px → 25px (fluid)',
     },
     {
       name: '3xl',
       cssVar: '--dsn-space-block-3xl',
-      value: 'calc(0.5rem * 3) = 24px',
+      value: '24px → 30px (fluid)',
     },
     {
       name: '4xl',
       cssVar: '--dsn-space-block-4xl',
-      value: 'calc(0.5rem * 4) = 32px',
+      value: '32px → 40px (fluid)',
     },
     {
       name: '5xl',
       cssVar: '--dsn-space-block-5xl',
-      value: 'calc(0.5rem * 6) = 48px',
+      value: '48px → 60px (fluid)',
     },
     {
       name: '6xl',
       cssVar: '--dsn-space-block-6xl',
-      value: 'calc(0.5rem * 8) = 64px',
+      value: '64px → 80px (fluid)',
     },
   ]}
 />
@@ -1803,47 +1856,47 @@ The system defines five spacing concepts: **row** (vertical between components),
     {
       name: '3xs',
       cssVar: '--dsn-space-text-3xs',
-      value: 'calc(0.5rem * 0.125) = 1px',
+      value: '1px (fixed)',
     },
     {
       name: '2xs',
       cssVar: '--dsn-space-text-2xs',
-      value: 'calc(0.5rem * 0.25) = 2px',
+      value: '2px (fixed)',
     },
     {
       name: 'xs',
       cssVar: '--dsn-space-text-xs',
-      value: 'calc(0.5rem * 0.25) = 2px',
+      value: '2px (fixed)',
     },
     {
       name: 'sm',
       cssVar: '--dsn-space-text-sm',
-      value: 'calc(0.5rem * 0.5) = 4px',
+      value: '4px → 5px (fluid)',
     },
     {
       name: 'md',
       cssVar: '--dsn-space-text-md',
-      value: 'calc(0.5rem * 1) = 8px',
+      value: '8px → 10px (fluid)',
     },
     {
       name: 'lg',
       cssVar: '--dsn-space-text-lg',
-      value: 'calc(0.5rem * 1.5) = 12px',
+      value: '12px → 15px (fluid)',
     },
     {
       name: 'xl',
       cssVar: '--dsn-space-text-xl',
-      value: 'calc(0.5rem * 2) = 16px',
+      value: '16px → 20px (fluid)',
     },
     {
       name: '2xl',
       cssVar: '--dsn-space-text-2xl',
-      value: 'calc(0.5rem * 2.5) = 20px',
+      value: '20px → 25px (fluid)',
     },
     {
       name: '3xl',
       cssVar: '--dsn-space-text-3xl',
-      value: 'calc(0.5rem * 3) = 24px',
+      value: '24px → 30px (fluid)',
     },
   ]}
 />
