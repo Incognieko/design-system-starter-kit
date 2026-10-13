@@ -1526,19 +1526,19 @@ Brengt consistente verticale ruimte aan tussen directe child-elementen via `flex
 
 **Tests:** React (6 tests)
 
-### SummaryList
+### DataList
 
 **Status:** Complete (HTML/CSS, React)
 
-**Location:** `packages/components-react/src/SummaryList/`
+**Location:** `packages/components-react/src/DataList/`
 
 **Props:**
 
-- `SummaryList`: `noBorder`, `children`
-- `SummaryListRow`: `noActions`, `children`
-- `SummaryListKey`: `children`
-- `SummaryListValue`: `children`
-- `SummaryListActions`: `children`
+- `DataList`: `noBorder`, `children`
+- `DataListRow`: `noActions`, `children`
+- `DataListKey`: `children`
+- `DataListValue`: `children`
+- `DataListActions`: `children`
 
 **Features:**
 
@@ -1546,16 +1546,16 @@ Brengt consistente verticale ruimte aan tussen directe child-elementen via `flex
 - Responsive: gestapeld (mobiel) → CSS Grid + subgrid (tablet+)
 - `noBorder` prop verwijdert rij-scheidingslijnen
 - `noActions` prop op een rij zonder actiecel voor consistente kolomuitlijning in gemengde lijsten
-- `SummaryListActions` wikkelt meerdere acties automatisch in een `<ul>` voor lijstsemantiek
+- `DataListActions` wikkelt meerdere acties automatisch in een `<ul>` voor lijstsemantiek
 
 **HTML klassen:**
 
 ```html
-<dl class="dsn-summary-list">
-  <div class="dsn-summary-list__row">
-    <dt class="dsn-summary-list__key">Naam</dt>
-    <dd class="dsn-summary-list__value">Sarah Hendricks</dd>
-    <dd class="dsn-summary-list__actions">
+<dl class="dsn-data-list">
+  <div class="dsn-data-list__row">
+    <dt class="dsn-data-list__key">Naam</dt>
+    <dd class="dsn-data-list__value">Sarah Hendricks</dd>
+    <dd class="dsn-data-list__actions">
       <a class="dsn-link" href="#">
         Wijzig
         <span class="dsn-visually-hidden"> naam</span>
@@ -1565,27 +1565,27 @@ Brengt consistente verticale ruimte aan tussen directe child-elementen via `flex
 </dl>
 
 <!-- Zonder borders -->
-<dl class="dsn-summary-list dsn-summary-list--no-border">...</dl>
+<dl class="dsn-data-list dsn-data-list--no-border">...</dl>
 ```
 
 **React:**
 
 ```tsx
-<SummaryList>
-  <SummaryListRow>
-    <SummaryListKey>Naam</SummaryListKey>
-    <SummaryListValue>Sarah Hendricks</SummaryListValue>
-    <SummaryListActions>
+<DataList>
+  <DataListRow>
+    <DataListKey>Naam</DataListKey>
+    <DataListValue>Sarah Hendricks</DataListValue>
+    <DataListActions>
       <Link href="#">
         Wijzig
         <span className="dsn-visually-hidden"> naam</span>
       </Link>
-    </SummaryListActions>
-  </SummaryListRow>
-</SummaryList>
+    </DataListActions>
+  </DataListRow>
+</DataList>
 ```
 
-**Design tokens:** `--dsn-summary-list-row-border-block-end-color`, `--dsn-summary-list-row-border-block-end-width`, `--dsn-summary-list-row-gap`, `--dsn-summary-list-row-padding-block`, `--dsn-summary-list-key-color`, `--dsn-summary-list-key-font-weight`, `--dsn-summary-list-key-basis`, `--dsn-summary-list-value-color`, `--dsn-summary-list-actions-gap`
+**Design tokens:** `--dsn-data-list-row-border-block-end-color`, `--dsn-data-list-row-border-block-end-width`, `--dsn-data-list-row-gap`, `--dsn-data-list-row-padding-block`, `--dsn-data-list-key-color`, `--dsn-data-list-key-font-weight`, `--dsn-data-list-key-basis`, `--dsn-data-list-value-color`, `--dsn-data-list-actions-gap`
 
 **Tests:** React (31 tests)
 

@@ -16,10 +16,10 @@ import {
   PageLayout,
   SkipLink,
   Stack,
-  SummaryList,
-  SummaryListKey,
-  SummaryListRow,
-  SummaryListValue,
+  DataList,
+  DataListKey,
+  DataListRow,
+  DataListValue,
 } from '@dsn-starter-kit/components-react';
 import {
   logoSlot,
@@ -93,20 +93,20 @@ export const Example: Story = {
                           </span>
                         </Link>
                       </Stack>
-                      <SummaryList>
-                        <SummaryListRow noActions>
-                          <SummaryListKey>Vraag</SummaryListKey>
-                          <SummaryListValue>
+                      <DataList>
+                        <DataListRow noActions>
+                          <DataListKey>Vraag</DataListKey>
+                          <DataListValue>
                             Als een banaan een eigen persoonlijkheid zou hebben,
                             welke eigenschappen denk je dat hij dan zou hebben
                             en waarom?
-                          </SummaryListValue>
-                        </SummaryListRow>
-                        <SummaryListRow noActions>
-                          <SummaryListKey>Favoriete fruit</SummaryListKey>
-                          <SummaryListValue>Banaan</SummaryListValue>
-                        </SummaryListRow>
-                      </SummaryList>
+                          </DataListValue>
+                        </DataListRow>
+                        <DataListRow noActions>
+                          <DataListKey>Favoriete fruit</DataListKey>
+                          <DataListValue>Banaan</DataListValue>
+                        </DataListRow>
+                      </DataList>
                     </Stack>
 
                     <Stack space="2xl">
@@ -122,50 +122,48 @@ export const Example: Story = {
                           </span>
                         </Link>
                       </Stack>
-                      <SummaryList>
-                        <SummaryListRow noActions>
-                          <SummaryListKey>Voornaam</SummaryListKey>
-                          <SummaryListValue>Jeroen</SummaryListValue>
-                        </SummaryListRow>
-                        <SummaryListRow noActions>
-                          <SummaryListKey>Achternaam</SummaryListKey>
-                          <SummaryListValue>van Drouwen</SummaryListValue>
-                        </SummaryListRow>
-                        <SummaryListRow noActions>
-                          <SummaryListKey>Straat</SummaryListKey>
-                          <SummaryListValue>
-                            Laan der Voorbeelden
-                          </SummaryListValue>
-                        </SummaryListRow>
-                        <SummaryListRow noActions>
-                          <SummaryListKey>Huisnummer</SummaryListKey>
-                          <SummaryListValue>9999</SummaryListValue>
-                        </SummaryListRow>
-                        <SummaryListRow noActions>
-                          <SummaryListKey>Postcode</SummaryListKey>
-                          <SummaryListValue>1440 VP</SummaryListValue>
-                        </SummaryListRow>
-                        <SummaryListRow noActions>
-                          <SummaryListKey>Woonplaats</SummaryListKey>
-                          <SummaryListValue>
+                      <DataList>
+                        <DataListRow noActions>
+                          <DataListKey>Voornaam</DataListKey>
+                          <DataListValue>Jeroen</DataListValue>
+                        </DataListRow>
+                        <DataListRow noActions>
+                          <DataListKey>Achternaam</DataListKey>
+                          <DataListValue>van Drouwen</DataListValue>
+                        </DataListRow>
+                        <DataListRow noActions>
+                          <DataListKey>Straat</DataListKey>
+                          <DataListValue>Laan der Voorbeelden</DataListValue>
+                        </DataListRow>
+                        <DataListRow noActions>
+                          <DataListKey>Huisnummer</DataListKey>
+                          <DataListValue>9999</DataListValue>
+                        </DataListRow>
+                        <DataListRow noActions>
+                          <DataListKey>Postcode</DataListKey>
+                          <DataListValue>1440 VP</DataListValue>
+                        </DataListRow>
+                        <DataListRow noActions>
+                          <DataListKey>Woonplaats</DataListKey>
+                          <DataListValue>
                             Westerhaar-Vriezenveensewijk
-                          </SummaryListValue>
-                        </SummaryListRow>
-                        <SummaryListRow noActions>
-                          <SummaryListKey>Geboortedatum</SummaryListKey>
-                          <SummaryListValue>9-12-1984</SummaryListValue>
-                        </SummaryListRow>
-                        <SummaryListRow noActions>
-                          <SummaryListKey>E-mailadres</SummaryListKey>
-                          <SummaryListValue>
+                          </DataListValue>
+                        </DataListRow>
+                        <DataListRow noActions>
+                          <DataListKey>Geboortedatum</DataListKey>
+                          <DataListValue>9-12-1984</DataListValue>
+                        </DataListRow>
+                        <DataListRow noActions>
+                          <DataListKey>E-mailadres</DataListKey>
+                          <DataListValue>
                             jeroenvandrouwen@gmail.com
-                          </SummaryListValue>
-                        </SummaryListRow>
-                        <SummaryListRow noActions>
-                          <SummaryListKey>Telefoonnummer</SummaryListKey>
-                          <SummaryListValue>06 12 34 56 78</SummaryListValue>
-                        </SummaryListRow>
-                      </SummaryList>
+                          </DataListValue>
+                        </DataListRow>
+                        <DataListRow noActions>
+                          <DataListKey>Telefoonnummer</DataListKey>
+                          <DataListValue>06 12 34 56 78</DataListValue>
+                        </DataListRow>
+                      </DataList>
                     </Stack>
                   </Stack>
 

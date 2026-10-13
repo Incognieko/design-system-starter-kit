@@ -407,7 +407,7 @@ De reviewpagina toont alle ingevulde gegevens, gegroepeerd per stap.
 
 1. `<h3>` met de titel van de stap
 2. `Link` met "Wijzig" + visueel verborgen contexttekst (bijv. `<span className="dsn-visually-hidden"> Uw gegevens</span>`) en `pencil`-icoon
-3. `SummaryList` met de ingevulde waarden
+3. `DataList` met de ingevulde waarden
 
 **ActionGroup onderaan de reviewpagina:**
 

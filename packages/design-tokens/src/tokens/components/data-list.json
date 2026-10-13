@@ -1,6 +1,6 @@
 {
   "dsn": {
-    "summary-list": {
+    "data-list": {
       "row": {
         "border-block-end-color": {
           "$value": "{dsn.color.neutral.border-subtle}",

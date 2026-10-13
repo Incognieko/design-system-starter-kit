@@ -1,10 +1,10 @@
-# SummaryList
+# DataList
 
 Toont informatie als key-value paren, typisch aan het einde van een formulier of als metadata-overzicht.
 
 ## Doel
 
-De SummaryList component presenteert gestructureerde gegevens als een beschrijvingslijst (`<dl>`). Elke rij bestaat uit een key (`<dt>`), een value (`<dd>`) en optionele actielinks. Het is gebaseerd op semantische HTML en hergebruikt het `Link` en `LinkButton` component voor acties.
+De DataList component presenteert gestructureerde gegevens als een beschrijvingslijst (`<dl>`). Elke rij bestaat uit een key (`<dt>`), een value (`<dd>`) en optionele actielinks. Het is gebaseerd op semantische HTML en hergebruikt het `Link` en `LinkButton` component voor acties.
 
 <!-- VOORBEELD -->
 
@@ -44,17 +44,17 @@ De SummaryList component presenteert gestructureerde gegevens als een beschrijvi
 
 ## Design tokens
 
-| Token                                           | Beschrijving                                         |
-| ----------------------------------------------- | ---------------------------------------------------- |
-| `--dsn-summary-list-row-border-block-end-color` | Kleur van de rij-scheidingslijn                      |
-| `--dsn-summary-list-row-border-block-end-width` | Breedte van de rij-scheidingslijn                    |
-| `--dsn-summary-list-row-gap`                    | Horizontale ruimte tussen kolommen in de grid-layout |
-| `--dsn-summary-list-row-padding-block`          | Verticale ruimte rondom elke rij                     |
-| `--dsn-summary-list-key-color`                  | Tekstkleur van de key cell                           |
-| `--dsn-summary-list-key-font-weight`            | Vetdikte van de key cell                             |
-| `--dsn-summary-list-key-basis`                  | Breedte van de key-kolom in de grid-layout           |
-| `--dsn-summary-list-value-color`                | Tekstkleur van de value cell                         |
-| `--dsn-summary-list-actions-gap`                | Ruimte tussen meerdere actielinks naast elkaar       |
+| Token                                        | Beschrijving                                         |
+| -------------------------------------------- | ---------------------------------------------------- |
+| `--dsn-data-list-row-border-block-end-color` | Kleur van de rij-scheidingslijn                      |
+| `--dsn-data-list-row-border-block-end-width` | Breedte van de rij-scheidingslijn                    |
+| `--dsn-data-list-row-gap`                    | Horizontale ruimte tussen kolommen in de grid-layout |
+| `--dsn-data-list-row-padding-block`          | Verticale ruimte rondom elke rij                     |
+| `--dsn-data-list-key-color`                  | Tekstkleur van de key cell                           |
+| `--dsn-data-list-key-font-weight`            | Vetdikte van de key cell                             |
+| `--dsn-data-list-key-basis`                  | Breedte van de key-kolom in de grid-layout           |
+| `--dsn-data-list-value-color`                | Tekstkleur van de value cell                         |
+| `--dsn-data-list-actions-gap`                | Ruimte tussen meerdere actielinks naast elkaar       |
 
 ## Accessibility
 

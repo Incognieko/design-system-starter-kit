@@ -20,7 +20,7 @@ De IconList component toont een opsomming waarbij het icoon per item visuele con
 - De items geen visueel onderscheidend icoon nodig hebben: gebruik dan de [Unordered List](/docs/components-unorderedlist--docs) of [Ordered List](/docs/components-orderedlist--docs).
 - Het nummer van elke stap zelf betekenis heeft en genoemd moet worden: gebruik dan de [Ordered List](/docs/components-orderedlist--docs), die het cijfer zichtbaar houdt.
 - De items volledige statusberichten zijn die aandacht vragen: gebruik dan [Alert](/docs/components-alert--docs) of [Note](/docs/components-note--docs).
-- Je key-value informatie toont: gebruik dan de [Summary List](/docs/components-summarylist--docs).
+- Je key-value informatie toont: gebruik dan de [Data List](/docs/components-datalist--docs).
 
 ## Best practices
 
@@ -34,7 +34,7 @@ De IconList component toont een opsomming waarbij het icoon per item visuele con
 
 - **Gebruik de standaard accentkleur tenzij de kleur betekenis draagt.** Zet `iconColor` alleen wanneer de kleur een status communiceert.
 - **Kleur is nooit de enige drager van betekenis.** Combineer een positieve kleur met een check-icoon en tekst die de status benoemt (WCAG 1.4.1).
-- **Eén kleur per lijst.** `iconColor` geldt voor de hele lijst. Wisselende statussen per item horen in aparte lijsten of in een [Summary List](/docs/components-summarylist--docs).
+- **Eén kleur per lijst.** `iconColor` geldt voor de hele lijst. Wisselende statussen per item horen in aparte lijsten of in een [Data List](/docs/components-datalist--docs).
 
 ### Inhoud
 

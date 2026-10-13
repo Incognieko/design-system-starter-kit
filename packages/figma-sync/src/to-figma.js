@@ -116,7 +116,7 @@ function trackSizesFrom(template, wideTemplate, fallbackType = 'FIXED') {
  */
 function gridLayoutFrom(styles, wideStyles, warnings, pathLabel) {
   // Figma kent geen subgrid. Een rij die zijn kolommen van de lijst overneemt
-  // (`grid-template-columns: subgrid`, zoals de rij van SummaryList in de
+  // (`grid-template-columns: subgrid`, zoals de rij van DataList in de
   // brede weergave) geeft uit de browser geen pixelmaten terug maar het woord
   // `subgrid`, en daar is niets uit te lezen. De laag wordt daarom gemarkeerd
   // en de ouder zet zijn eigen tracks erop zodra die bekend zijn; zie
@@ -337,7 +337,7 @@ function weightFieldFor(side) {
  * Randen naar een Figma stroke.
  *
  * Een rand hoeft niet rondom te lopen. Note tekent alleen een accentrand aan de
- * inline-start, en Table en SummaryList scheiden hun rijen met één lijn. Zo'n
+ * inline-start, en Table en DataList scheiden hun rijen met één lijn. Zo'n
  * rand als uniforme stroke overnemen zou in Figma een kader om het hele
  * component zetten: niet een waarschuwing waard maar een verkeerd component.
  *
@@ -643,7 +643,7 @@ function applyChildPlacement(
     // Figma kan dat ook: de span gaat op het kind en de ouder plaatst zelf, in
     // dezelfde leesvolgorde als `grid-auto-flow: row`.
     // Een expliciete kolom zonder expliciete rij. Zo staan de key, de value en
-    // de acties in de rij van SummaryList: `grid-column: 1|2|3` zonder
+    // de acties in de rij van DataList: `grid-column: 1|2|3` zonder
     // `grid-row`, want de rij heeft er maar één. Heeft het grid precies één
     // rij, dan is die rij de plek; anders zou CSS-autoplaatsing nagebootst
     // moeten worden en dat is het niet waard.
@@ -661,7 +661,7 @@ function applyChildPlacement(
           : 1;
 
       // Eén rij in het grid: dan is die rij de plek. Zo staan de key, de value
-      // en de acties in de rij van SummaryList (`grid-column: 1|2|3` zonder
+      // en de acties in de rij van DataList (`grid-column: 1|2|3` zonder
       // `grid-row`, want de rij heeft er maar één).
       if ((parentLayout.gridRowCount ?? 1) === 1) {
         converted.gridColumnAnchorIndex = columnStart - 1;
@@ -678,7 +678,7 @@ function applyChildPlacement(
       }
 
       // Meer rijen, en dit kind pakt ze allemaal in de breedte: dat is
-      // autoplaatsing over de rijen, zoals de rijen van SummaryList met
+      // autoplaatsing over de rijen, zoals de rijen van DataList met
       // `grid-column: 1 / -1`. De span gaat mee en de ouder plaatst zelf, net
       // als bij een kind met alleen een span.
       if (span === columns) {
@@ -710,7 +710,7 @@ function applyChildPlacement(
 
   // Een negatieve lijn telt van achteren: `-1` is de laatste lijn, dus in een
   // grid van drie kolommen is dat lijn 4. `grid-column: 1 / -1` (de rij van
-  // SummaryList, de inhoud van Note) spant daarmee over alles.
+  // DataList, de inhoud van Note) spant daarmee over alles.
   const lineOf = (value, count) => {
     const line = Number.parseInt(value, 10);
     if (!Number.isFinite(line)) return undefined;

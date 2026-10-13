@@ -67,6 +67,10 @@
       "types": "./css.d.ts",
       "default": "./src/container/container.css"
     },
+    "./data-list": {
+      "types": "./css.d.ts",
+      "default": "./src/data-list/data-list.css"
+    },
     "./date-input": {
       "types": "./css.d.ts",
       "default": "./src/date-input/date-input.css"
@@ -262,10 +266,6 @@
     "./status-badge": {
       "types": "./css.d.ts",
       "default": "./src/status-badge/status-badge.css"
-    },
-    "./summary-list": {
-      "types": "./css.d.ts",
-      "default": "./src/summary-list/summary-list.css"
     },
     "./table": {
       "types": "./css.d.ts",

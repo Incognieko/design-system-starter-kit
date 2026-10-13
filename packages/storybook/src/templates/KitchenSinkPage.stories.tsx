@@ -84,11 +84,11 @@ import {
   Spinner,
   Stack,
   StatusBadge,
-  SummaryList,
-  SummaryListActions,
-  SummaryListKey,
-  SummaryListRow,
-  SummaryListValue,
+  DataList,
+  DataListActions,
+  DataListKey,
+  DataListRow,
+  DataListValue,
   Table,
   TelephoneInput,
   TextArea,
@@ -1264,35 +1264,35 @@ export const Default: Story = {
                 </div>
               </Section>
 
-              {/* SummaryList */}
+              {/* DataList */}
               <Section
-                name="SummaryList"
-                docPath="?path=/docs/components-summarylist--docs"
+                name="DataList"
+                docPath="?path=/docs/components-datalist--docs"
               >
-                <SummaryList>
-                  <SummaryListRow>
-                    <SummaryListKey>Tekst</SummaryListKey>
-                    <SummaryListValue>Tekst</SummaryListValue>
-                    <SummaryListActions>
+                <DataList>
+                  <DataListRow>
+                    <DataListKey>Tekst</DataListKey>
+                    <DataListValue>Tekst</DataListValue>
+                    <DataListActions>
                       <Link href="#" iconStart={<Icon name="pencil" />}>
                         Tekst
                       </Link>
-                    </SummaryListActions>
-                  </SummaryListRow>
-                  <SummaryListRow>
-                    <SummaryListKey>Tekst</SummaryListKey>
-                    <SummaryListValue>Tekst</SummaryListValue>
-                    <SummaryListActions>
+                    </DataListActions>
+                  </DataListRow>
+                  <DataListRow>
+                    <DataListKey>Tekst</DataListKey>
+                    <DataListValue>Tekst</DataListValue>
+                    <DataListActions>
                       <Link href="#" iconStart={<Icon name="pencil" />}>
                         Tekst
                       </Link>
-                    </SummaryListActions>
-                  </SummaryListRow>
-                  <SummaryListRow>
-                    <SummaryListKey>Tekst</SummaryListKey>
-                    <SummaryListValue>Tekst</SummaryListValue>
-                  </SummaryListRow>
-                </SummaryList>
+                    </DataListActions>
+                  </DataListRow>
+                  <DataListRow>
+                    <DataListKey>Tekst</DataListKey>
+                    <DataListValue>Tekst</DataListValue>
+                  </DataListRow>
+                </DataList>
               </Section>
 
               {/* Table */}
