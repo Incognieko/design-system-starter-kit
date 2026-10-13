@@ -1,0 +1,38 @@
+import { Meta, Story, Controls, Markdown } from '@storybook/addon-docs/blocks';
+import * as DataListStories from './DataList.stories';
+import docs from './DataList.docs.md?raw';
+import { PreviewFrame, CodeTabs } from './components';
+
+export const [intro, rest] = docs.split('<!-- VOORBEELD -->');
+
+<Meta of={DataListStories} />
+
+<Markdown>{intro}</Markdown>
+
+## Voorbeeld
+
+<PreviewFrame>
+  <Story of={DataListStories.Default} />
+</PreviewFrame>
+
+<CodeTabs
+  of={DataListStories.Default}
+  html={`<dl class="dsn-data-list">
+  <div class="dsn-data-list__row">
+    <dt class="dsn-data-list__key">Naam</dt>
+    <dd class="dsn-data-list__value">Sarah Hendricks</dd>
+  </div>
+  <div class="dsn-data-list__row">
+    <dt class="dsn-data-list__key">Geboortedatum</dt>
+    <dd class="dsn-data-list__value">5 januari 1990</dd>
+  </div>
+  <div class="dsn-data-list__row">
+    <dt class="dsn-data-list__key">Adres</dt>
+    <dd class="dsn-data-list__value">Kerkstraat 12, 1234 AB Amsterdam</dd>
+  </div>
+</dl>`}
+/>
+
+<Controls of={DataListStories.Default} />
+
+<Markdown>{rest}</Markdown>

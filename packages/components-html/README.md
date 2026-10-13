@@ -75,6 +75,7 @@ import '@dsn-starter-kit/components-html/modal-dialog';
 - `./checkbox-group` — Checkbox group styles
 - `./checkbox-option` — Checkbox option styles
 - `./container` — Container layout styles
+- `./data-list` — Data list styles
 - `./date-input` — Date input styles
 - `./date-input-group` — Date input group styles
 - `./details` — Details/summary styles
@@ -123,7 +124,6 @@ import '@dsn-starter-kit/components-html/modal-dialog';
 - `./spinner` — Spinner component styles
 - `./stack` — Stack layout styles
 - `./status-badge` — Status badge styles
-- `./summary-list` — Summary list styles
 - `./table` — Table component styles
 - `./table-of-contents` — Table of contents styles
 - `./text-area` — Text area styles
@@ -187,6 +187,7 @@ component, ordered so that each one comes after what it depends on.
 | CheckboxGroup         | `dsn-checkbox-group`                                             | `./checkbox-group`           |
 | CheckboxOption        | `dsn-checkbox-option`                                            | `./checkbox-option`          |
 | Container             | `dsn-container`                                                  | `./container`                |
+| DataList              | `dsn-data-list`                                                  | `./data-list`                |
 | DateInput             | `dsn-text-input`, `dsn-date-input`                               | `./date-input`               |
 | DateInputGroup        | `dsn-date-input-group`                                           | `./date-input-group`         |
 | Details               | `dsn-details`                                                    | `./details`                  |
@@ -236,7 +237,6 @@ component, ordered so that each one comes after what it depends on.
 | Spinner               | `dsn-spinner`                                                    | `./spinner`                  |
 | Stack                 | `dsn-stack`, `dsn-stack--space-{size}`                           | `./stack`                    |
 | StatusBadge           | `dsn-status-badge`, `dsn-status-badge--{variant}`                | `./status-badge`             |
-| SummaryList           | `dsn-summary-list`                                               | `./summary-list`             |
 | Table                 | `dsn-table`                                                      | `./table`                    |
 | TableOfContents       | `dsn-table-of-contents`, `dsn-table-of-contents--plain`          | `./table-of-contents`        |
 | TextArea              | `dsn-text-area`, `dsn-text-area--size-{size}`                    | `./text-area`                |

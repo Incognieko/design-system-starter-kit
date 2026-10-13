@@ -1,52 +1,52 @@
 import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import {
-  SummaryList,
-  SummaryListRow,
-  SummaryListKey,
-  SummaryListValue,
-  SummaryListActions,
-} from './SummaryList';
+  DataList,
+  DataListRow,
+  DataListKey,
+  DataListValue,
+  DataListActions,
+} from './DataList';
 
 // =============================================================================
-// SummaryList
+// DataList
 // =============================================================================
 
-describe('SummaryList', () => {
+describe('DataList', () => {
   it('renders as a <dl> element', () => {
-    const { container } = render(<SummaryList />);
+    const { container } = render(<DataList />);
     expect(container.firstChild?.nodeName).toBe('DL');
   });
 
-  it('always has base dsn-summary-list class', () => {
-    const { container } = render(<SummaryList />);
-    expect(container.firstChild).toHaveClass('dsn-summary-list');
+  it('always has base dsn-data-list class', () => {
+    const { container } = render(<DataList />);
+    expect(container.firstChild).toHaveClass('dsn-data-list');
   });
 
   it('does not apply --no-border class by default', () => {
-    const { container } = render(<SummaryList />);
-    expect(container.firstChild).not.toHaveClass('dsn-summary-list--no-border');
+    const { container } = render(<DataList />);
+    expect(container.firstChild).not.toHaveClass('dsn-data-list--no-border');
   });
 
   it('applies --no-border class when noBorder is true', () => {
-    const { container } = render(<SummaryList noBorder />);
-    expect(container.firstChild).toHaveClass('dsn-summary-list--no-border');
+    const { container } = render(<DataList noBorder />);
+    expect(container.firstChild).toHaveClass('dsn-data-list--no-border');
   });
 
   it('applies custom className', () => {
-    const { container } = render(<SummaryList className="custom" />);
-    expect(container.firstChild).toHaveClass('dsn-summary-list');
+    const { container } = render(<DataList className="custom" />);
+    expect(container.firstChild).toHaveClass('dsn-data-list');
     expect(container.firstChild).toHaveClass('custom');
   });
 
   it('renders children', () => {
     render(
-      <SummaryList>
-        <SummaryListRow>
-          <SummaryListKey>Naam</SummaryListKey>
-          <SummaryListValue>Sarah</SummaryListValue>
-        </SummaryListRow>
-      </SummaryList>
+      <DataList>
+        <DataListRow>
+          <DataListKey>Naam</DataListKey>
+          <DataListValue>Sarah</DataListValue>
+        </DataListRow>
+      </DataList>
     );
     expect(screen.getByText('Naam')).toBeInTheDocument();
     expect(screen.getByText('Sarah')).toBeInTheDocument();
@@ -54,65 +54,65 @@ describe('SummaryList', () => {
 
   it('forwards ref to the dl element', () => {
     const ref = { current: null as HTMLDListElement | null };
-    render(<SummaryList ref={ref} />);
+    render(<DataList ref={ref} />);
     expect(ref.current?.tagName).toBe('DL');
   });
 
   it('spreads additional HTML attributes', () => {
-    render(<SummaryList data-testid="my-list" />);
+    render(<DataList data-testid="my-list" />);
     expect(screen.getByTestId('my-list')).toBeInTheDocument();
   });
 });
 
 // =============================================================================
-// SummaryListRow
+// DataListRow
 // =============================================================================
 
-describe('SummaryListRow', () => {
+describe('DataListRow', () => {
   it('renders as a <div> element', () => {
     const { container } = render(
       <dl>
-        <SummaryListRow />
+        <DataListRow />
       </dl>
     );
     expect(container.querySelector('div')).toBeInTheDocument();
   });
 
-  it('always has base dsn-summary-list__row class', () => {
+  it('always has base dsn-data-list__row class', () => {
     const { container } = render(
       <dl>
-        <SummaryListRow />
+        <DataListRow />
       </dl>
     );
-    expect(container.querySelector('div')).toHaveClass('dsn-summary-list__row');
+    expect(container.querySelector('div')).toHaveClass('dsn-data-list__row');
   });
 
   it('does not apply --no-actions class by default', () => {
     const { container } = render(
       <dl>
-        <SummaryListRow />
+        <DataListRow />
       </dl>
     );
     expect(container.querySelector('div')).not.toHaveClass(
-      'dsn-summary-list__row--no-actions'
+      'dsn-data-list__row--no-actions'
     );
   });
 
   it('applies --no-actions class when noActions is true', () => {
     const { container } = render(
       <dl>
-        <SummaryListRow noActions />
+        <DataListRow noActions />
       </dl>
     );
     expect(container.querySelector('div')).toHaveClass(
-      'dsn-summary-list__row--no-actions'
+      'dsn-data-list__row--no-actions'
     );
   });
 
   it('applies custom className', () => {
     const { container } = render(
       <dl>
-        <SummaryListRow className="custom-row" />
+        <DataListRow className="custom-row" />
       </dl>
     );
     expect(container.querySelector('div')).toHaveClass('custom-row');
@@ -122,7 +122,7 @@ describe('SummaryListRow', () => {
     const ref = { current: null as HTMLDivElement | null };
     render(
       <dl>
-        <SummaryListRow ref={ref} />
+        <DataListRow ref={ref} />
       </dl>
     );
     expect(ref.current?.tagName).toBe('DIV');
@@ -130,37 +130,37 @@ describe('SummaryListRow', () => {
 });
 
 // =============================================================================
-// SummaryListKey
+// DataListKey
 // =============================================================================
 
-describe('SummaryListKey', () => {
+describe('DataListKey', () => {
   it('renders as a <dt> element', () => {
     const { container } = render(
       <dl>
         <div>
-          <SummaryListKey>Naam</SummaryListKey>
+          <DataListKey>Naam</DataListKey>
         </div>
       </dl>
     );
     expect(container.querySelector('dt')).toBeInTheDocument();
   });
 
-  it('always has base dsn-summary-list__key class', () => {
+  it('always has base dsn-data-list__key class', () => {
     const { container } = render(
       <dl>
         <div>
-          <SummaryListKey>Naam</SummaryListKey>
+          <DataListKey>Naam</DataListKey>
         </div>
       </dl>
     );
-    expect(container.querySelector('dt')).toHaveClass('dsn-summary-list__key');
+    expect(container.querySelector('dt')).toHaveClass('dsn-data-list__key');
   });
 
   it('renders children', () => {
     render(
       <dl>
         <div>
-          <SummaryListKey>Naam</SummaryListKey>
+          <DataListKey>Naam</DataListKey>
         </div>
       </dl>
     );
@@ -172,7 +172,7 @@ describe('SummaryListKey', () => {
     render(
       <dl>
         <div>
-          <SummaryListKey ref={ref}>Naam</SummaryListKey>
+          <DataListKey ref={ref}>Naam</DataListKey>
         </div>
       </dl>
     );
@@ -181,39 +181,37 @@ describe('SummaryListKey', () => {
 });
 
 // =============================================================================
-// SummaryListValue
+// DataListValue
 // =============================================================================
 
-describe('SummaryListValue', () => {
+describe('DataListValue', () => {
   it('renders as a <dd> element', () => {
     const { container } = render(
       <dl>
         <div>
-          <SummaryListValue>Sarah</SummaryListValue>
+          <DataListValue>Sarah</DataListValue>
         </div>
       </dl>
     );
     expect(container.querySelector('dd')).toBeInTheDocument();
   });
 
-  it('always has base dsn-summary-list__value class', () => {
+  it('always has base dsn-data-list__value class', () => {
     const { container } = render(
       <dl>
         <div>
-          <SummaryListValue>Sarah</SummaryListValue>
+          <DataListValue>Sarah</DataListValue>
         </div>
       </dl>
     );
-    expect(container.querySelector('dd')).toHaveClass(
-      'dsn-summary-list__value'
-    );
+    expect(container.querySelector('dd')).toHaveClass('dsn-data-list__value');
   });
 
   it('renders children', () => {
     render(
       <dl>
         <div>
-          <SummaryListValue>Sarah Hendricks</SummaryListValue>
+          <DataListValue>Sarah Hendricks</DataListValue>
         </div>
       </dl>
     );
@@ -225,7 +223,7 @@ describe('SummaryListValue', () => {
     render(
       <dl>
         <div>
-          <SummaryListValue ref={ref}>Sarah</SummaryListValue>
+          <DataListValue ref={ref}>Sarah</DataListValue>
         </div>
       </dl>
     );
@@ -234,45 +232,43 @@ describe('SummaryListValue', () => {
 });
 
 // =============================================================================
-// SummaryListActions
+// DataListActions
 // =============================================================================
 
-describe('SummaryListActions', () => {
+describe('DataListActions', () => {
   it('renders as a <dd> element', () => {
     const { container } = render(
       <dl>
         <div>
-          <SummaryListActions>
+          <DataListActions>
             <a href="#">Wijzig</a>
-          </SummaryListActions>
+          </DataListActions>
         </div>
       </dl>
     );
     expect(container.querySelector('dd')).toBeInTheDocument();
   });
 
-  it('always has base dsn-summary-list__actions class', () => {
+  it('always has base dsn-data-list__actions class', () => {
     const { container } = render(
       <dl>
         <div>
-          <SummaryListActions>
+          <DataListActions>
             <a href="#">Wijzig</a>
-          </SummaryListActions>
+          </DataListActions>
         </div>
       </dl>
     );
-    expect(container.querySelector('dd')).toHaveClass(
-      'dsn-summary-list__actions'
-    );
+    expect(container.querySelector('dd')).toHaveClass('dsn-data-list__actions');
   });
 
   it('renders a single action without a list wrapper', () => {
     const { container } = render(
       <dl>
         <div>
-          <SummaryListActions>
+          <DataListActions>
             <a href="#">Wijzig</a>
-          </SummaryListActions>
+          </DataListActions>
         </div>
       </dl>
     );
@@ -284,20 +280,20 @@ describe('SummaryListActions', () => {
     const { container } = render(
       <dl>
         <div>
-          <SummaryListActions>
+          <DataListActions>
             <a href="#">Wijzig</a>
             <button type="button">Verwijder</button>
-          </SummaryListActions>
+          </DataListActions>
         </div>
       </dl>
     );
     expect(container.querySelector('ul')).toHaveClass(
-      'dsn-summary-list__actions-list'
+      'dsn-data-list__actions-list'
     );
     const items = container.querySelectorAll('li');
     expect(items).toHaveLength(2);
     items.forEach((item) => {
-      expect(item).toHaveClass('dsn-summary-list__actions-list-item');
+      expect(item).toHaveClass('dsn-data-list__actions-list-item');
     });
   });
 
@@ -306,9 +302,9 @@ describe('SummaryListActions', () => {
     render(
       <dl>
         <div>
-          <SummaryListActions ref={ref}>
+          <DataListActions ref={ref}>
             <a href="#">Wijzig</a>
-          </SummaryListActions>
+          </DataListActions>
         </div>
       </dl>
     );
@@ -319,9 +315,9 @@ describe('SummaryListActions', () => {
     const { container } = render(
       <dl>
         <div>
-          <SummaryListActions className="custom-actions">
+          <DataListActions className="custom-actions">
             <a href="#">Wijzig</a>
-          </SummaryListActions>
+          </DataListActions>
         </div>
       </dl>
     );
@@ -333,47 +329,47 @@ describe('SummaryListActions', () => {
 // Composition
 // =============================================================================
 
-describe('SummaryList composition', () => {
-  it('renders a complete summary list with key and value', () => {
+describe('DataList composition', () => {
+  it('renders a complete data list with key and value', () => {
     render(
-      <SummaryList>
-        <SummaryListRow>
-          <SummaryListKey>Naam</SummaryListKey>
-          <SummaryListValue>Sarah Hendricks</SummaryListValue>
-        </SummaryListRow>
-      </SummaryList>
+      <DataList>
+        <DataListRow>
+          <DataListKey>Naam</DataListKey>
+          <DataListValue>Sarah Hendricks</DataListValue>
+        </DataListRow>
+      </DataList>
     );
     expect(screen.getByText('Naam').tagName).toBe('DT');
     expect(screen.getByText('Sarah Hendricks').tagName).toBe('DD');
   });
 
-  it('renders a complete summary list with actions', () => {
+  it('renders a complete data list with actions', () => {
     render(
-      <SummaryList>
-        <SummaryListRow>
-          <SummaryListKey>Naam</SummaryListKey>
-          <SummaryListValue>Sarah Hendricks</SummaryListValue>
-          <SummaryListActions>
+      <DataList>
+        <DataListRow>
+          <DataListKey>Naam</DataListKey>
+          <DataListValue>Sarah Hendricks</DataListValue>
+          <DataListActions>
             <a href="#">Wijzig</a>
-          </SummaryListActions>
-        </SummaryListRow>
-      </SummaryList>
+          </DataListActions>
+        </DataListRow>
+      </DataList>
     );
     expect(screen.getByText('Wijzig')).toBeInTheDocument();
   });
 
   it('renders multiple rows', () => {
     render(
-      <SummaryList>
-        <SummaryListRow>
-          <SummaryListKey>Naam</SummaryListKey>
-          <SummaryListValue>Sarah</SummaryListValue>
-        </SummaryListRow>
-        <SummaryListRow>
-          <SummaryListKey>Leeftijd</SummaryListKey>
-          <SummaryListValue>34</SummaryListValue>
-        </SummaryListRow>
-      </SummaryList>
+      <DataList>
+        <DataListRow>
+          <DataListKey>Naam</DataListKey>
+          <DataListValue>Sarah</DataListValue>
+        </DataListRow>
+        <DataListRow>
+          <DataListKey>Leeftijd</DataListKey>
+          <DataListValue>34</DataListValue>
+        </DataListRow>
+      </DataList>
     );
     expect(screen.getByText('Naam')).toBeInTheDocument();
     expect(screen.getByText('Leeftijd')).toBeInTheDocument();

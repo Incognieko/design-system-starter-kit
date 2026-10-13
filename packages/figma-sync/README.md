@@ -222,7 +222,7 @@ het eind: een lege rij tussen twee gevulde in houdt de nummering van de cellen
 overeind.
 
 **Figma kent geen subgrid.** Een rij die in CSS de kolommen van zijn ouder
-overneemt (`grid-template-columns: subgrid`, zoals de rij van SummaryList in de
+overneemt (`grid-template-columns: subgrid`, zoals de rij van DataList in de
 brede weergave) geeft uit de browser geen pixelmaten terug maar het woord
 `subgrid`: gemeten is dat `subgrid [] [] [] []`, en daar is niets uit te lezen.
 Zo'n laag wordt gemarkeerd en krijgt na het omzetten van de kinderen de tracks
@@ -235,9 +235,9 @@ alles. Zonder die omrekening werd zo'n kind één kolom breed.
 
 **Een expliciete kolom zonder expliciete rij** komt in twee vormen voor. Heeft
 het grid precies één rij, dan is die rij de plek: zo staan de key, de value en
-de acties in de rij van SummaryList (`grid-column: 1|2|3` zonder `grid-row`).
+de acties in de rij van DataList (`grid-column: 1|2|3` zonder `grid-row`).
 Zijn er meer rijen en pakt het kind alle kolommen, dan is het autoplaatsing
-over de rijen, zoals de rijen van SummaryList zelf, en gaat het via de span
+over de rijen, zoals de rijen van DataList zelf, en gaat het via de span
 hieronder.
 
 Een kind zonder expliciete cel maar mét een span is autoplaatsing. `grid-column:
@@ -968,7 +968,7 @@ Figma's `gridItemsPositioning` kent precies twee waarden: `MANUAL` en
 `ROW_AUTO_FLOW`. Die laatste doet wat `grid-auto-flow: row` doet. Een andere
 waarde (`AUTO` leek logisch) wordt door de API geweigerd, en dat gooit tijdens
 het bouwen: bij PageFooter bleef er één variant van de vier staan en bij
-SummaryList een halve set. De mock dwingt de enum nu af, de plugin maakt er een
+DataList een halve set. De mock dwingt de enum nu af, de plugin maakt er een
 waarschuwing van in plaats van het einde van de import, en de smoke test
 controleert dat de stand ook echt op de node landt.
 

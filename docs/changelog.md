@@ -10,6 +10,21 @@ All notable changes to this project are documented in this file.
 
 Nog niet gepubliceerde wijzigingen. Schrijf nieuwe changelog-entries hieronder; bij de volgende release wordt deze kop gepromoveerd naar het definitieve versienummer.
 
+### SummaryList heet nu DataList (breaking)
+
+Het component is een key-value lijst op basis van `<dl>` en wordt breder gebruikt dan alleen voor de samenvatting van een formulier. De naam volgt nu wat het is in plaats van één toepassing. Gedrag, markup-structuur, props en tokenwaardes zijn ongewijzigd: alleen de namen veranderen. Er is geen alias voor de oude namen, dus een zoek-en-vervang is nodig.
+
+| Laag              | Oud                                                                                                                 | Nieuw                                                                        |
+| ----------------- | ------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------- |
+| React             | `SummaryList`, `SummaryListRow`, `SummaryListKey`, `SummaryListValue`, `SummaryListActions` (en hun `*Props`-types) | `DataList`, `DataListRow`, `DataListKey`, `DataListValue`, `DataListActions` |
+| CSS-klassen       | `dsn-summary-list`, `dsn-summary-list__*`, `dsn-summary-list--*`                                                    | `dsn-data-list`, `dsn-data-list__*`, `dsn-data-list--*`                      |
+| Custom properties | `--dsn-summary-list-*`                                                                                              | `--dsn-data-list-*`                                                          |
+| Tokens            | `dsn.summary-list.*`                                                                                                | `dsn.data-list.*`                                                            |
+| CSS-exportpad     | `@dsn-starter-kit/components-html/summary-list`                                                                     | `@dsn-starter-kit/components-html/data-list`                                 |
+| Storybook         | `components-summarylist--*`                                                                                         | `components-datalist--*`                                                     |
+
+In Figma maakt de eerstvolgende import een nieuwe component set `DataList` aan. De bestaande set `SummaryList` blijft staan en moet met de hand worden opgeruimd of vooraf hernoemd.
+
 ### Fluid spacing naast de fluid type scale
 
 Ruimte groeit nu mee met de viewport, net als tekst. Elke maat heeft in het thema een min-waarde (op 360px) en een max-waarde (op 1440px): `dsn.text.font-size.min.*` / `max.*` en `dsn.space.{block,inline,text,column,row}.min.*` / `max.*`. Het bereik zelf staat in `dsn.viewport.min-inline-size` en `max-inline-size`. Standaard is elke max de min × 1.25. Maten van 1px en 2px schalen niet mee, en het klikdoel (`dsn.pointer-target`, 3rem) blijft vast.

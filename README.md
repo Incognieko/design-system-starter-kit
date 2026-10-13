@@ -236,6 +236,7 @@ All components are fully typed with TypeScript and include comprehensive JSDoc d
 | **Alert**       | Yes      | Yes   | No            |
 | **Backdrop**    | Yes      | Yes   | No            |
 | **Card**        | Yes      | Yes   | No            |
+| **DataList**    | Yes      | Yes   | No            |
 | **Details**     | Yes      | Yes   | No            |
 | **DotBadge**    | Yes      | Yes   | No            |
 | **Drawer**      | Yes      | Yes   | No            |
@@ -248,7 +249,6 @@ All components are fully typed with TypeScript and include comprehensive JSDoc d
 | **ProgressBar** | Yes      | Yes   | No            |
 | **Spinner**     | Yes      | Yes   | No            |
 | **StatusBadge** | Yes      | Yes   | No            |
-| **SummaryList** | Yes      | Yes   | No            |
 | **Table**       | Yes      | Yes   | No            |
 
 **Navigation Components (7)**

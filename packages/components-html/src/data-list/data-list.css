@@ -1,0 +1,148 @@
+/**
+ * DataList Component
+ * Displays information as key-value pairs, typically at the end of a form
+ * ("check your answers") or as a metadata overview.
+ *
+ * Usage:
+ * <!-- Basic (no actions) -->
+ * <dl class="dsn-data-list">
+ *   <div class="dsn-data-list__row">
+ *     <dt class="dsn-data-list__key">Name</dt>
+ *     <dd class="dsn-data-list__value">Sarah Hendricks</dd>
+ *   </div>
+ * </dl>
+ *
+ * <!-- With actions -->
+ * <dl class="dsn-data-list">
+ *   <div class="dsn-data-list__row">
+ *     <dt class="dsn-data-list__key">Name</dt>
+ *     <dd class="dsn-data-list__value">Sarah Hendricks</dd>
+ *     <dd class="dsn-data-list__actions">
+ *       <a class="dsn-link" href="#">Change <span class="dsn-visually-hidden"> name</span></a>
+ *     </dd>
+ *   </div>
+ * </dl>
+ *
+ * <!-- Mixed list: row without actions uses --no-actions for consistent column alignment -->
+ * <dl class="dsn-data-list">
+ *   <div class="dsn-data-list__row">...</div>
+ *   <div class="dsn-data-list__row dsn-data-list__row--no-actions">
+ *     <dt class="dsn-data-list__key">Reference</dt>
+ *     <dd class="dsn-data-list__value">ABC-123</dd>
+ *   </div>
+ * </dl>
+ */
+
+/* ===========================
+   Root container
+   =========================== */
+.dsn-data-list {
+  margin: 0;
+  padding: 0;
+}
+
+/* ===========================
+   Row
+   =========================== */
+.dsn-data-list__row {
+  display: flex;
+  flex-direction: column;
+  padding-block: var(--dsn-data-list-row-padding-block);
+  border-block-end: var(--dsn-data-list-row-border-block-end-width) solid
+    var(--dsn-data-list-row-border-block-end-color);
+}
+
+.dsn-data-list__row:first-child {
+  border-block-start: var(--dsn-data-list-row-border-block-end-width) solid
+    var(--dsn-data-list-row-border-block-end-color);
+}
+
+/* ===========================
+   Key cell
+   =========================== */
+.dsn-data-list__key {
+  margin: 0;
+  color: var(--dsn-data-list-key-color);
+  font-weight: var(--dsn-data-list-key-font-weight);
+}
+
+/* ===========================
+   Value cell
+   =========================== */
+.dsn-data-list__value {
+  margin: 0;
+  color: var(--dsn-data-list-value-color);
+}
+
+/* ===========================
+   Actions cell
+   =========================== */
+.dsn-data-list__actions {
+  display: flex;
+  margin: 0;
+  margin-block-start: var(--dsn-data-list-actions-margin-block-start-stacked);
+}
+
+/* ===========================
+   Multiple actions list
+   =========================== */
+.dsn-data-list__actions-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--dsn-data-list-actions-gap);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.dsn-data-list__actions-list-item {
+  display: flex;
+  margin: 0;
+  padding: 0;
+}
+
+/* ===========================
+   No-border modifier
+   =========================== */
+.dsn-data-list--no-border .dsn-data-list__row,
+.dsn-data-list--no-border .dsn-data-list__row:first-child {
+  border: none;
+}
+
+/* ===========================
+   Wide layout: CSS Grid with subgrid
+   key (~30%) | value (1fr) | actions (auto)
+   =========================== */
+@media (min-width: 44em) {
+  .dsn-data-list {
+    display: grid;
+    grid-template-columns:
+      var(--dsn-data-list-key-basis)
+      1fr
+      auto;
+  }
+
+  .dsn-data-list__row {
+    grid-column: 1 / -1;
+    display: grid;
+    grid-template-columns: subgrid;
+    align-items: baseline;
+    flex-direction: unset;
+    gap: 0 var(--dsn-data-list-row-gap);
+  }
+
+  .dsn-data-list__key {
+    grid-column: 1;
+  }
+
+  .dsn-data-list__value {
+    grid-column: 2;
+  }
+
+  .dsn-data-list__actions {
+    grid-column: 3;
+    margin-block-start: 0;
+    align-self: start;
+    justify-content: end;
+  }
+}
