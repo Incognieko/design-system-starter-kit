@@ -9,6 +9,7 @@
 
 import { parseColor } from '../../design-tokens/src/config/color.js';
 import { bindingsFor, createBindingReport } from './bindings.js';
+import { blockOf, toInstance } from './instances.js';
 
 // =============================================================================
 // WAARDE-CONVERSIE
@@ -623,6 +624,17 @@ function applyChildPlacement(
     converted.layoutSizingHorizontal = 'FILL';
   }
 
+  // `flex-grow` in een rij is in Figma FILL: het kind neemt de ruimte die
+  // over is. Zonder dit stond de kop in de header van ModalDialog op HUG en
+  // schoof de sluitknop mee met de lengte van de titel.
+  if (
+    !outOfFlow &&
+    parentLayout.layoutMode === 'HORIZONTAL' &&
+    Number.parseFloat(styles.flexGrow) > 0
+  ) {
+    converted.layoutSizingHorizontal = 'FILL';
+  }
+
   if (styles.position === 'absolute' || styles.position === 'fixed') {
     // Een absoluut kind valt buiten de stroom; Figma houdt het op zijn plek
     // ten opzichte van de ouder in plaats van het mee te laten stromen.
@@ -899,6 +911,13 @@ function rotationFrom(transform, warnings, label) {
   return Math.round(degrees * 100) / 100;
 }
 
+/** Zet een declaratie een maat, of krimpt hij om de inhoud? */
+const INTRINSIC_SIZES = /^\s*(fit-content|max-content|min-content|auto)\s*$/;
+function declaresSize(source) {
+  if (!source) return false;
+  return !INTRINSIC_SIZES.test(String(source.value ?? ''));
+}
+
 function convertElement(
   node,
   wideNode,
@@ -964,6 +983,10 @@ function convertElement(
       type: 'TEXT',
       name: TEXT_LAYER_NAME,
       characters: node.children[0].text,
+      // De plek in de ouder. Alleen nodig als die ouder geen auto layout
+      // heeft; zonder komt de laag daar op 0,0 te staan.
+      x: node.rect.x,
+      y: node.rect.y,
       ...textStyleFrom(styles, node.tokens, bindings?.index),
     };
   }
@@ -1089,6 +1112,15 @@ function convertElement(
       if (fieldText && isFieldText(child)) {
         converted.layoutSizingHorizontal = 'HUG';
       }
+      // Een subboom die een ander component ís wordt een instance daarvan.
+      // Pas hier, nu de gemeten laag zijn plek in deze ouder heeft: die plek
+      // gaat mee naar de instance. Zie instances.js.
+      const block = bindings?.instances
+        ? blockOf(child, bindings.instances.own)
+        : null;
+      if (block) {
+        return bindings.instances.resolve(block, converted, child, childLabel);
+      }
       return converted;
     }),
   };
@@ -1117,11 +1149,16 @@ function convertElement(
   // alleen absoluut om zich buiten beeld te zetten; zijn maat komt gewoon uit
   // zijn tekst.
   const absolute = styles.position === 'absolute' && !root;
-  const fixedWidth = absolute || Boolean(node.tokens?.width);
+  // `fit-content`, `max-content` en `min-content` zijn geen maat maar een
+  // instructie om om de inhoud te krimpen, dus het tegendeel van vast. Een
+  // CheckboxOption is `width: fit-content`, en kwam daardoor op een vaste
+  // 69px in een CheckboxGroup te staan, waar een lang label dan in een smalle
+  // kolom afbrak.
+  const fixedWidth = absolute || declaresSize(node.tokens?.width);
   // Een textarea haalt zijn hoogte uit `rows`, niet uit zijn inhoud: met één
   // regel tekst erin zou HUG hem laten krimpen.
   const fixedHeight =
-    absolute || Boolean(node.tokens?.height) || node.tag === 'textarea';
+    absolute || declaresSize(node.tokens?.height) || node.tag === 'textarea';
 
   // Krimpt om zijn inhoud: `inline-block` net als `inline-flex`, en een
   // absoluut gepositioneerde root zonder eigen breedte ook. Voor die laatste
@@ -1179,7 +1216,7 @@ function convertElement(
 
 /** Wikkel zodat convertNode niets van de vorm van het bindings-object hoeft te weten. */
 function bindVariables(spec, tokens, bindings) {
-  if (!bindings) return undefined;
+  if (!bindings?.index) return undefined;
   return bindingsFor(spec, tokens, bindings.index, bindings.report);
 }
 
@@ -1562,9 +1599,65 @@ function hugRootWidth(node, warnings, label) {
   }
 }
 
-export function toComponentSet(matrix, extracted, variableIndexes) {
+/**
+ * De naam van de component set.
+ *
+ * De naam die een designer in Figma terugvindt is de CSS-klasse, niet de
+ * matrixnaam: `dsn-button` is waar hij in de code op zoekt. Klapt de root om
+ * welke reden dan ook niet naar een `dsn-`-element, dan blijft de matrixnaam
+ * over.
+ *
+ * `setName` overschrijft dat. Nodig zodra de root meerdere blokklassen
+ * draagt: HeadingGroup is `class="dsn-heading dsn-heading--2
+ * dsn-heading-group"`, en de eerste klasse wint, dus zonder override zouden
+ * Heading en HeadingGroup allebei `dsn-heading` heten. Twee sets met dezelfde
+ * naam is voor een designer die op de klasse zoekt geen keuze maar een gok.
+ *
+ * De klasse komt uit de DOM en niet uit de laagnaam van de root: een root die
+ * tot tekst inklapt (Heading, Paragraph) heet als laag "Tekst".
+ */
+export function setNameFor(matrix, extracted) {
+  const rootClass = extracted[0]?.tree.classes?.[0];
+  return (
+    matrix.setName ??
+    (rootClass?.startsWith('dsn-') ? rootClass : matrix.component)
+  );
+}
+
+export function toComponentSet(
+  matrix,
+  extracted,
+  variableIndexes,
+  { targets = new Map() } = {}
+) {
   const warnings = [];
   const report = createBindingReport();
+
+  // De blokken die als instance in aanmerking komen maar het (nog) niet
+  // worden. Zie instances.js.
+  const candidates = new Set();
+  const resolveInstance = (block, converted, node, label) => {
+    candidates.add(block);
+    // Tot een matrix op instances staat blijft alles gemeten. Zo kan het
+    // patroon per component aan, en is in Figma te bevestigen dat het werkt
+    // voordat de hele bibliotheek omgaat.
+    if (!matrix.instances) return converted;
+
+    const target = targets.get(block);
+    if (!target) {
+      if (node.instance) {
+        throw new Error(
+          `${label}: data-figma-instance="${block}" wijst naar een set die niet bestaat. Bouw die matrix eerst, of controleer de naam.`
+        );
+      }
+      warnings.push(
+        `${label}: ${block} is een component uit de manifest maar heeft geen eigen set in Figma, dus het blijft een gemeten laag`
+      );
+      return converted;
+    }
+
+    return toInstance(converted, node, target, label);
+  };
 
   // Een index per gemeten breedte; zie `build-components.js`. Eén index blijft
   // werken, en dan geldt die voor elke variant.
@@ -1576,24 +1669,7 @@ export function toComponentSet(matrix, extracted, variableIndexes) {
         : undefined;
   const defaultIndex = indexes ? [...indexes.values()][0] : undefined;
 
-  const rootClass = extracted[0]?.tree.classes?.[0];
-
-  // De naam die een designer in Figma terugvindt is de CSS-klasse, niet de
-  // matrixnaam: `dsn-button` is waar hij in de code op zoekt. Klapt de root om
-  // welke reden dan ook niet naar een `dsn-`-element, dan blijft de matrixnaam
-  // over.
-  //
-  // `setName` overschrijft dat. Nodig zodra de root meerdere blokklassen
-  // draagt: HeadingGroup is `class="dsn-heading dsn-heading--2
-  // dsn-heading-group"`, en de eerste klasse wint, dus zonder override zouden
-  // Heading en HeadingGroup allebei `dsn-heading` heten. Twee sets met dezelfde
-  // naam is voor een designer die op de klasse zoekt geen keuze maar een gok.
-  //
-  // De klasse komt uit de DOM en niet uit de laagnaam van de root: een root die
-  // tot tekst inklapt (Heading, Paragraph) heet als laag "Tekst".
-  const setName =
-    matrix.setName ??
-    (rootClass?.startsWith('dsn-') ? rootClass : matrix.component);
+  const setName = setNameFor(matrix, extracted);
 
   const components = extracted.map(
     ({ variant, tree, wideTree, viewportWidth }) => {
@@ -1602,7 +1678,14 @@ export function toComponentSet(matrix, extracted, variableIndexes) {
       // desktop-modes van `dsn/Density` geverifieerd te worden, niet tegen de
       // mobiele.
       const index = indexes?.get(viewportWidth) ?? defaultIndex;
-      const bindings = index ? { index, report } : undefined;
+      const bindings = {
+        index,
+        report,
+        instances: {
+          own: new Set(tree.classes ?? []),
+          resolve: resolveInstance,
+        },
+      };
 
       const axisLabel = Object.entries(variant)
         .map(([axis, value]) => `${axis}=${value}`)
@@ -1645,12 +1728,33 @@ export function toComponentSet(matrix, extracted, variableIndexes) {
   // en `mergeAdornments` gooit daarna een laag weg (de wrapper) en laat een
   // padding-binding los. De plugin controleert zijn eigen aantal tegen dit
   // getal, dus het hoort over de opgeleverde boom te gaan.
+  // De bindingen in de overrides van een instance tellen mee: de plugin legt
+  // ze via dezelfde route.
   const countBindings = (node) =>
     Object.keys(node.boundVariables ?? {}).length +
+    (node.overrides ?? []).reduce(
+      (total, override) =>
+        total + Object.keys(override.boundVariables ?? {}).length,
+      0
+    ) +
     (node.children ?? []).reduce(
       (total, child) => total + countBindings(child),
       0
     );
+
+  // De sets waar deze set instances van bevat. Alleen wat er werkelijk in de
+  // boom staat: de Checkbox in een CheckboxGroup zit binnen de
+  // CheckboxOption-instance en is een afhankelijkheid van díe set, niet van de
+  // groep. De volgorde klopt daarna vanzelf via de keten.
+  const dependsOn = new Map();
+  const collectTargets = (node) => {
+    if (node.type === 'INSTANCE') {
+      dependsOn.set(node.component, { name: node.component, page: node.page });
+      return;
+    }
+    for (const child of node.children ?? []) collectTargets(child);
+  };
+  for (const component of components) collectTargets(component.node);
 
   // Vóór report.summary(): de achtergrondbinding telt mee in hetzelfde rapport.
   const canvas = canvasFor(defaultIndex, report);
@@ -1664,6 +1768,9 @@ export function toComponentSet(matrix, extracted, variableIndexes) {
       page: pageNameFor(matrix.component),
       canvas,
       name: setName,
+      // De sets die er al moeten staan voordat deze geïmporteerd kan worden:
+      // de doelen van zijn instances. De plugin weigert zonder.
+      ...(dependsOn.size ? { dependsOn: [...dependsOn.values()] } : {}),
       variantAxes: matrix.axes ?? {},
       componentProperties: checkComponentProperties(
         matrix.componentProperties,
@@ -1677,6 +1784,11 @@ export function toComponentSet(matrix, extracted, variableIndexes) {
     // voor een beperking die de generator niet kán zien: `::marker` is geen
     // DOM-element, dus een lijst komt zonder bolletjes in Figma en niets in de
     // meting valt daarover op te merken.
+    // Blokken die als instance in aanmerking komen maar het nog niet zijn,
+    // omdat de matrix niet op `instances: true` staat.
+    ...(!matrix.instances && candidates.size
+      ? { instanceCandidates: [...candidates].sort() }
+      : {}),
     warnings: [
       ...(matrix.warnings ?? []),
       ...summariseWarnings([...new Set(warnings)]),

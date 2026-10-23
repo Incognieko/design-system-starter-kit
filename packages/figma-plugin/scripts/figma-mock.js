@@ -420,11 +420,51 @@ class Node {
    * Figma bij een instance swap doet: de overrides op de oude lagen gelden
    * niet meer voor de nieuwe.
    */
+  resetOverrides() {
+    if (this.type !== 'INSTANCE') {
+      throw new Error(
+        `resetOverrides bestaat alleen op een instance, niet op een ${this.type}`
+      );
+    }
+    this.#resetOverrides();
+  }
+
+  /**
+   * Zoals in Figma: alleen een instance die direct in een component staat kan
+   * "exposed" worden, niet een instance binnen een andere instance. De
+   * properties ervan verschijnen dan in het paneel van dat component.
+   */
+  set isExposedInstance(value) {
+    if (this.type !== 'INSTANCE') {
+      throw new Error(`isExposedInstance bestaat alleen op een instance`);
+    }
+    let ancestor = this.parent;
+    while (ancestor && ancestor.type !== 'COMPONENT') {
+      if (ancestor.type === 'INSTANCE') {
+        throw new Error(
+          'een instance binnen een andere instance kan niet exposed worden'
+        );
+      }
+      ancestor = ancestor.parent;
+    }
+    if (!ancestor) {
+      throw new Error(
+        'alleen een instance binnen een component kan exposed worden'
+      );
+    }
+    this._isExposedInstance = Boolean(value);
+  }
+  get isExposedInstance() {
+    return this._isExposedInstance ?? false;
+  }
+
   #resetOverrides() {
     if (this.type !== 'INSTANCE' || !this.mainComponent) return;
     for (const child of [...this.children]) child.remove();
     for (const child of this.mainComponent.children) {
-      this.appendChild(cloneNode(child));
+      const mirror = cloneNode(child);
+      mirror._source = child;
+      this.appendChild(mirror);
     }
   }
 
@@ -712,6 +752,10 @@ class ComponentNode extends Node {
     instance.mainComponent = this;
     instance.width = this.width;
     instance.height = this.height;
+    // Een instance draagt de auto layout van zijn component. Zonder dit kan er
+    // in de mock niets op FILL binnen een instance, terwijl dat in Figma de
+    // gewone stand is voor een Heading in een HeadingGroup.
+    copyLayout(this, instance);
 
     // Een verse instance is een kopie van wat het component nú is, overrides op
     // geneste lagen incluis. Dat is waarom een eerste import wél een goed
@@ -792,9 +836,37 @@ function syncInstance(component, instance) {
   });
 }
 
+/** De auto layout van een laag, zoals een instance die van zijn component erft. */
+function copyLayout(source, target) {
+  target.layoutMode = source.layoutMode;
+  for (const field of [
+    'itemSpacing',
+    'paddingTop',
+    'paddingRight',
+    'paddingBottom',
+    'paddingLeft',
+    'primaryAxisAlignItems',
+    'counterAxisAlignItems',
+  ]) {
+    if (source[field] !== undefined) target[field] = source[field];
+  }
+}
+
 /** Diepe kopie van een laag, genoeg om overrides op te kunnen leggen. */
 function cloneNode(node) {
-  const copy = new Node(node.type);
+  const copy = node.type === 'TEXT' ? new TextNode() : new Node(node.type);
+  copyLayout(node, copy);
+  if (node.type === 'TEXT') {
+    // Rechtstreeks, niet via de setter: een spiegel neemt de tekst over van
+    // zijn bron, en daar was het font al voor geladen. Wie daarna `characters`
+    // op de spiegel zet, moet het font wél geladen hebben, net als in Figma.
+    copy.fontName = node.fontName;
+    copy._characters = node._characters;
+    if (node.fontSize !== undefined) copy.fontSize = node.fontSize;
+    if (node._layoutSizingHorizontal !== undefined) {
+      copy._layoutSizingHorizontal = node._layoutSizingHorizontal;
+    }
+  }
   copy.name = node.name;
   copy.width = node.width;
   copy.height = node.height;

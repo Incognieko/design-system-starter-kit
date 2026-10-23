@@ -474,6 +474,15 @@ Een node blijft daarom FIXED wanneer:
   padding: een `<input>`, een lege DotBadge, de wrapper van Popover met alleen
   een absoluut kind.
 
+`fit-content`, `max-content`, `min-content` en `auto` tellen daarbij niet als
+maat: dat is een instructie om om de inhoud te krimpen, het tegendeel van
+vast. Een CheckboxOption is `width: fit-content` en kwam daardoor op een vaste
+69px in een CheckboxGroup te staan. RadioOption is hetzelfde. In de groep
+vult een optie nu de breedte (`fillRootChildren` op CheckboxGroup en
+RadioGroup), want Figma kent geen maximale breedte die met de ouder
+meebeweegt; zo breekt een lang label af op de breedte van de groep, net als in
+de browser.
+
 `width` en `height` zijn daarvoor toegevoegd aan de gevolgde properties. Niet
 om te binden, maar omdat de computed waarde altijd een pixelgetal is: daaruit
 valt niet af te lezen of de maat van een declaratie komt of van de inhoud. Uit
@@ -487,6 +496,11 @@ SkipLink is alleen absoluut om zich buiten beeld te zetten, en stond daardoor
 op een vaste 241×40 terwijl hij net als Button met zijn tekst hoort mee te
 groeien. Naar `display` kijken is daar niet genoeg: de browser rekent
 `inline-block` op een absoluut element om naar `block`.
+
+Een kind met `flex-grow` in een rij krijgt FILL: het neemt de ruimte die over
+is, zoals de kop in de header van ModalDialog, Drawer en Popover, en de link in
+MenuLink. Zonder dit schoof de sluitknop in de header mee met de lengte van de
+titel.
 
 Tekst aan het eind van een rij krijgt FILL. In CSS is tekst in een flex-rij een
 item dat mag krimpen en dan afbreekt; in Figma breekt tekst alleen af als de
@@ -517,7 +531,12 @@ als aantoonbaar is dat er niets van verschuift:
 
 Overlappen de kinderen, staan ze naast elkaar, verschillen de gaten, of is er
 een absoluut gepositioneerd kind bij, dan blijft het frame zonder auto layout
-en komt de padding als vanouds in het rapport. Dat gebeurt bijvoorbeeld bij de
+en komt de padding als vanouds in het rapport.
+
+Elk kind van zo'n frame draagt zijn gemeten `x` en `y`, ook een tekstlaag, en
+de plugin zet ze relatief aan de ouder. Tot #369 gebeurde dat alleen voor
+absoluut gepositioneerde kinderen, en lag de rest op 0,0: bij een FormField
+met beschrijving stonden het label, de beschrijving en het veld over elkaar. Dat gebeurt bijvoorbeeld bij de
 `invalid`-variant van FormField, waar de marge onder het label verandert zodra
 er een beschrijving achter staat.
 
@@ -687,6 +706,149 @@ in de iconset en niet in de componenten die hem tonen.
 Een SVG die géén icoon uit die set is (de cirkel van Spinner) heeft geen
 `data-icon` en krijgt zijn laagnaam uit zijn eigen klasse.
 
+### Geneste componenten worden instances
+
+Een CheckboxOption bevat een Checkbox, een Alert een Heading en een Paragraph,
+een ModalDialog een Button. Zolang die subbomen opnieuw gemeten en nagebouwd
+worden, kunnen ze stil uit elkaar lopen met het component dat ze voorstellen:
+bij Checkbox gebeurde dat al met een overgetypt vinkje. Als instance volgt de
+laag zijn set, en werkt een wijziging aan Heading overal door. Het patroon is
+hetzelfde als bij de iconen, maar dan voor elke set uit de bibliotheek, en op
+elke diepte: Checkbox in CheckboxOption in CheckboxGroup.
+
+`src/instances.js` doet dat in drie stappen.
+
+**1. Herkennen.** Een element waarvan een klasse precies een `cssBlock` uit
+`components-html/manifest.json` is, ís dat component: `dsn-checkbox` binnen
+een `dsn-checkbox-option`. Dat is geen raden op klassenaam.
+`dsn-checkbox__control` is een BEM-element en geen blok, en matcht dus niet;
+een `dsn-card__image-placeholder` blijft daarom ook een gemeten laag. De
+layoutcomponenten en `dsn-icon` doen niet mee: de eerste hebben bewust geen
+set, en een icoon heeft al zijn eigen route via `data-icon`.
+
+Wat niet in de klassen te zien is, wijst de matrix aan:
+
+| Attribuut                                   | Wanneer                                                                 |
+| ------------------------------------------- | ----------------------------------------------------------------------- |
+| `data-figma-instance="dsn-heading"`         | het component is niet aan een eigen element te herkennen (HeadingGroup) |
+| `data-figma-variant="appearance=heading-3"` | de variant is uit de meting niet eenduidig te bepalen                   |
+| `data-figma-instance="none"`                | dit element is bewust een eigen laag en geen instance                   |
+
+HeadingGroup is het voorbeeld van de eerste. De Heading is daar de root zelf
+(`<h2 class="dsn-heading … dsn-heading-group">`) en de tekst hangt direct in
+die `<h2>`; er is geen kind met `dsn-heading` om te herkennen. De matrix zet
+daarom `data-figma-instance` op een span om de tekst.
+
+**2. De variant kiezen.** Uit de klassen is die niet altijd af te lezen: of een
+Checkbox aangevinkt is zit in het `<input>`, en hover is een pseudo-toestand.
+De subboom wordt daarom gewoon gemeten, en daarna vergeleken met elke variant
+van de doelset. De variant met de minste verschillen wint. Twee varianten die
+even dichtbij zitten maar wel van elkaar verschillen laten de build stoppen:
+dat is een gok, en die hoort niet stil in een library te belanden. Een
+subboom met een andere opbouw dan elke variant (een ander aantal lagen,
+een ander icoon) stopt de build ook, want daar is geen override op te leggen.
+
+Dat vergelijken is de reden dat de build nu eerst álle matrices meet en pas
+daarna omzet: een samenstelling heeft de spec van zijn doelsets nodig, en
+welke dat zijn blijkt pas uit de meting.
+
+**Een vaste breedte gelijk aan de natuurlijke breedte is geen vaste breedte.**
+Staat een instance in de host op FIXED, en is die breedte precies wat het
+component zelf op HUG meet, dan hugt de instance. De knoppen in de footer van
+ModalDialog stonden anders op een vaste 129px, gemeten mét de chevrons die in
+Figma via `showIconStart` en `showIconEnd` uit staan.
+
+**Een ander token weegt lichter dan een andere waarde.** Bij het kiezen van
+een variant telt een verschil in waarde zwaarder dan dezelfde waarde aan een
+ander token. Een kop met eigen tokens die op de maat van `heading-4`
+uitkomen, hoort bij `heading-4`, niet bij een variant die net zo veel tokens
+deelt maar een andere maat heeft. De eigen tokens gaan dan als override mee,
+zodat de laag aan het token van de host blijft hangen.
+
+**Wat (nog) geen variant heeft, blijft gemeten.** De sluitknop van ModalDialog
+is icon-only, en daar heeft de Button-set geen variant voor (issue #451). Hij
+draagt `data-figma-instance="none"`.
+
+**3. Overrides.** Wat na die keuze nog verschilt, gaat als override mee: per
+laag, met het pad zoals het in Figma staat. Een component dat tot één
+tekstlaag inklapt (Heading, Paragraph) krijgt in de plugin een frame om zich
+heen, dus de tekst zit dan op `[0]` binnen de instance. De bindingen in die
+overrides zijn tijdens het meten al geverifieerd, dus de eigenschap uit
+DR-2026-06 blijft staan: een misrekening kan een binding missen, maar geen
+verkeerde leggen.
+
+De maat en de plek van de instance komen uit de host. Staat een Heading in de
+host op FILL, dan krijgt zijn tekstlaag ook een FILL-override, anders breekt
+de tekst niet af.
+
+Een instance van een set met eigen component properties is **exposed**: de
+`label` van de Heading staat dan in het paneel van de HeadingGroup. De host
+declareert die properties dus niet opnieuw.
+
+#### Volgorde
+
+Elke spec met instances draagt `componentSet.dependsOn`: de sets die er al
+moeten staan, met hun pagina. De build zet de matrices zelf in die volgorde.
+De plugin weigert een set waarvan een doelset nog niet in het bestand staat,
+en de UI sorteert bestanden die tegelijk binnenkomen op dezelfde volgorde.
+
+Een gefilterde build (`build-components heading-group`) haalt de doelsets uit
+een eerdere build in `dist/`. Ontbreekt er één, dan bouw die matrix eerst.
+
+#### Per matrix aan te zetten
+
+Een matrix gaat pas op instances met `instances: true`. Zolang dat er niet
+staat, blijft alles gemeten en meldt de build wat er een instance zou kunnen
+worden:
+
+```
+   CheckboxGroup  …
+                  nog gemeten, kan instance worden: dsn-checkbox, dsn-checkbox-option, dsn-option-label
+```
+
+Dat staat ook in de spec, als `instanceCandidates`. Zo kan het patroon per
+component aan, en is in Figma te bevestigen dat het werkt voordat de hele
+bibliotheek omgaat. HeadingGroup, Alert, Note, FormField, ModalDialog en de
+ketens van Checkbox en Radio (Option en Group) staan erop.
+
+**De matrix rendert de opbouw van het component, niet een kortere versie.**
+FormFieldLabel heeft in zijn eigen set een suffix-laag die via `showSuffix`
+standaard uit staat. Liet de FormField-matrix die laag weg, dan verschilde de
+opbouw en stopte de build. Met de suffix erbij koppelt het label zonder
+verschillen, en staat de suffix in de instance uit, net als in de losse set.
+
+**Breedte kiest geen variant.** De varianten van `inlineSize` bij TextInput
+verschillen alleen in breedte, en breedte hoort bij de plek in de host, dus de
+vergelijking kijkt er niet naar. Zonder markering zou de eerste variant in de
+lijst winnen. FormField zet daarom `data-figma-variant="inlineSize=auto"` op
+het veld; de rest van de variant (invalid, state) komt nog steeds uit de
+meting.
+
+Bij Alert en Note komt er geen enkele kleur- of typografie-override mee, en
+dat klopt: `heading.css` en `paragraph.css` zetten hun kleur met hun eigen
+tokens, en Alert en Note overschrijven die niet. Alleen de FILL op de
+tekstlaag gaat mee, zodat de tekst in de cel afbreekt.
+
+**Sizing is een override, geen andere opbouw.** In een losse CheckboxOption
+hugt het label, in een CheckboxGroup vult het de breedte. Dat is dezelfde
+CheckboxOption op een andere plek. Bij het vergelijken telt de sizing van een
+geneste instance daarom niet mee, en wat verschilt gaat als override op de
+laag binnen die instance, met het pad erdoorheen: `[1, 0]` is de tekst in het
+label in de optie.
+
+**De variant komt uit de meting, ook voor pseudo-toestanden.** De hover van
+een CheckboxOption hangt aan het `<input>` van zijn Checkbox, en de vergelijking
+koppelt die zonder markering aan `interaction=hover` van de Checkbox-set.
+
+`dependsOn` noemt alleen wat er werkelijk in de set staat. Een CheckboxGroup
+hangt af van `dsn-checkbox-option`; de Checkbox zit binnen die instance en is
+een afhankelijkheid van die set. De volgorde klopt via de keten.
+
+Zet een keten **van onderaf** aan. In een CheckboxGroup op instances wordt ook
+de Checkbox binnen elke optie een instance, en dan moet de CheckboxOption-set
+zelf ook al instances van Checkbox bevatten: anders verschilt de opbouw en
+stopt de build.
+
 ## Hoe de icongeneratie werkt
 
 `build-icons.js` is een ander type generator dan `build-components.js`. Daar
@@ -767,6 +929,8 @@ dsn-heading-group"`, dus zonder override zouden Heading en HeadingGroup
 - **`optional: true`** op een component property laat hem alleen hangen in de
   varianten die de laag hebben. Zonder is een property die niet in elke variant
   een laag heeft een fout.
+- **`instances: true`** maakt van geneste componenten instances in plaats van
+  gemeten lagen; zie "Geneste componenten worden instances".
 - **`warnings`** zet een vaste waarschuwing in de spec, voor een beperking die
   de generator zelf niet kán zien. `::marker` is het voorbeeld: de bolletjes van
   een UnorderedList zijn een pseudo-element en dus geen DOM-node, dus er valt
@@ -835,6 +999,9 @@ eigen `padding-inline`-tokens, dus als boolean zou de knop de padding van de
 tekstvariant houden. Als as zou hij de set verdrievoudigen. Zolang geen van
 beide bevalt is niets doen het eerlijkste antwoord; zie issue
 [#323](https://github.com/jeffreylauwers/design-system-starter-kit/issues/323).
+Een `iconOnly`-as staat nu als
+[#451](https://github.com/jeffreylauwers/design-system-starter-kit/issues/451)
+op de backlog.
 
 ### Naamgeving
 

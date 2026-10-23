@@ -114,9 +114,10 @@
   <li>het component dat je wilt, uit <code>figma-sync/dist/</code></li>
 </ol>
 <p>
-  Deze volgorde is nodig: de lagen binden aan variables, en de iconen worden
-  instances van de iconset. Sleep je alles tegelijk, dan sorteert de plugin het
-  zelf.
+  Deze volgorde is nodig: de lagen binden aan variables, de iconen worden
+  instances van de iconset, en een samengesteld component (HeadingGroup) bevat
+  instances van de sets waar het uit bestaat, dus die moeten er eerst staan.
+  Sleep je alles tegelijk, dan sorteert de plugin het zelf.
 </p>
 
 <label class="drop" id="drop">
@@ -184,6 +185,32 @@
     logElement.scrollTop = logElement.scrollHeight;
   }
 
+  /**
+   * Zet componenten met instances ná de sets waar ze instances van bevatten:
+   * een HeadingGroup na Heading en PreHeading. Andersom weigert de plugin. De
+   * volgorde van variables en iconen blijft staan, want die staan vooraan.
+   */
+  function inDependencyOrder(jobs) {
+    const bySet = new Map(
+      jobs
+        .filter((job) => job.kind === 'components')
+        .map((job) => [job.payload.componentSet?.name, job])
+    );
+    const ordered = [];
+    const done = new Set();
+    const visit = (job) => {
+      if (done.has(job)) return;
+      done.add(job);
+      for (const { name } of job.payload.componentSet?.dependsOn ?? []) {
+        const dependency = bySet.get(name);
+        if (dependency) visit(dependency);
+      }
+      ordered.push(job);
+    };
+    for (const job of jobs) visit(job);
+    return ordered;
+  }
+
   async function handleFiles(files) {
     const jobs = [];
 
@@ -212,7 +239,7 @@
     // en dan zou button.json vóór variables.json gaan en geweigerd worden.
     jobs.sort((a, b) => ORDER.indexOf(a.kind) - ORDER.indexOf(b.kind));
 
-    for (const job of jobs) {
+    for (const job of inDependencyOrder(jobs)) {
       write(`> ${job.name}`);
       showProgress(`${job.name} inlezen`);
       parent.postMessage(

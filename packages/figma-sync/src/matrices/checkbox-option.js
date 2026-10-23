@@ -21,6 +21,8 @@ import { FLAG, skipFlagCombinations } from '../flags.js';
 export default {
   component: 'CheckboxOption',
 
+  instances: true,
+
   fonts: [
     'https://fonts.googleapis.com/css2?family=Fira+Sans:wght@400;700&display=swap',
   ],

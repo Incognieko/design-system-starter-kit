@@ -53,6 +53,14 @@ de theme-schakelaar niet volgt, en dat zie je aan een laag niet.
 Ontbreekt er een enkele variable, dan is dat geen reden om te stoppen: die laag
 houdt zijn vaste waarde en de plugin meldt het in de log.
 
+**Een samengesteld component na zijn onderdelen.** Een HeadingGroup bevat
+instances van `dsn-pre-heading` en `dsn-heading`, dus `pre-heading.json` en
+`heading.json` moeten er eerst in. De spec noemt ze in
+`componentSet.dependsOn`, en de plugin **weigert** zolang er één ontbreekt,
+vóór er een pagina of variant is aangeraakt. Doorgaan met een gemeten laag zou
+een kopie opleveren die er goed uitziet en niet meebeweegt; zie "Geneste
+componenten" hieronder.
+
 ## Bindingen aan variables
 
 Een gegenereerde laag krijgt geen vaste kleur maar een verwijzing naar de
@@ -233,6 +241,69 @@ De gemeten kleur blijft er als override overheen liggen, zoals een designer die
 met de hand zou leggen: een icoon in een `strong` Button is wit, niet de
 neutrale tekstkleur van het icooncomponent.
 
+### Geneste componenten
+
+Wat voor de iconen geldt, geldt voor elke set waarvan de generator een
+`INSTANCE` in de spec zet (zie "Geneste componenten worden instances" in de
+README van `figma-sync`). `src/instances.js` zoekt de set en de variant op,
+eerst op de pagina die de spec noemt en daarna op elke andere pagina, en
+plaatst een instance van precies die variant.
+
+Daarna:
+
+1. **Plek en maat.** Eerst in de host, vóór de overrides. Een override die een
+   laag binnen de instance op FILL zet vraagt een ouder die niet hugt, en een
+   instance erft de HUG van zijn component tot hij hier zijn eigen maat krijgt.
+   Een CheckboxOption in een CheckboxGroup is daar het voorbeeld van.
+2. **Overrides.** Per laag, op het pad uit de spec. Eerst het font, dan de
+   tekst, dan de velden, dan de bindingen, en als laatste de sizing: FILL kan
+   pas als de laag in de instance aan zijn auto-layout ouder hangt. Een
+   override die niet landt is een `error` in de log.
+3. **Fonts vooraf.** Een override op `characters` kan alleen met een geladen
+   font, en dat font komt uit het doelcomponent, niet uit deze spec. De fonts
+   van de tekstlagen in elk doelcomponent worden daarom aan het begin geladen.
+4. **Exposed.** Heeft de doelset eigen component properties, dan staat de
+   instance op `isExposedInstance`. De `label` van de Heading staat dan in het
+   paneel van de HeadingGroup.
+
+Bij een tweede import wordt de instance hergebruikt, net als een icoon, en
+eerst teruggezet met `resetOverrides()` zodat een override die uit de spec is
+gevallen niet blijft staan. `resetVariant` haalt daarvoor de instances op
+**elke diepte** uit een variant, niet alleen de directe kinderen: een
+Paragraph in de content van een Alert gaat anders met zijn frame mee de
+prullenbak in, en dan is zijn node-id alsnog weg.
+
+Een doelset opnieuw importeren laat de instances ervan staan. Dat volgt uit
+hoe een set wordt bijgewerkt: de varianten houden hun node-id, en daar hangen
+de instances aan.
+
+**De overrides erop blijven alleen staan als de laag eronder blijft staan.**
+Een override hangt niet aan de instance maar aan een laag in het component, en
+Figma zoekt hem terug via die laag. In Figma Desktop gemeten: na een nieuwe
+import van `heading.json` bleef elke Heading in de HeadingGroup aan zijn
+variant hangen, maar stond de tekst weer op HUG in plaats van FILL. De
+tekstlaag in de Heading-variant was vervangen door een nieuwe, en de override
+hing aan de oude.
+
+Een component dat in zijn geheel uit één tekstlaag bestaat (Heading,
+Paragraph, PreHeading) houdt daarom bij een tweede import zijn tekstlaag; die
+wordt bijgewerkt in plaats van vervangen. Dat kan daar en niet bij een
+willekeurige variant, omdat de identiteit eenduidig is: er is één laag, en die
+hoort bij de ene tekstlaag in de spec. Voor een doelset met meer lagen (een
+Checkbox in een CheckboxOption) is dit nog open: daar gaan overrides op de
+geneste lagen bij een nieuwe import van die doelset nog verloren.
+
+**Nog in Figma zelf te bevestigen.** De mock kan deze drie niet beslissen:
+
+- of een tekstlaag binnen een instance op FILL kan, zodat een Heading in een
+  smalle host afbreekt in plaats van uit te lopen;
+- of een binding op een override een tweede import overleeft, zodra er een
+  set is met een override die een kleur of maat aan een variable hangt.
+
+Bevestigd voor HeadingGroup: een tekstlaag binnen een instance kan op FILL en
+breekt dan af, de label van een exposed instance staat in het paneel, en een
+tweede import van de host laat een geplaatste instance en zijn tekst staan.
+
 ### Alles wat niet lukt is een fout, geen stilte
 
 Een property die niet gelegd kan worden gaat als `error` de log in, met de
@@ -389,6 +460,11 @@ af die in Figma echt fouten geven:
    (`as=waarde, as=waarde`)
 10. een instance swap property koppelen verwisselt de laag, en dat wist de
     overrides op zijn geneste lagen
+11. in een frame zonder auto layout staat elk kind op zijn gemeten plek,
+    relatief aan zijn ouder (dat was tot #369 alleen zo voor absolute kinderen)
+12. een instance draagt de auto layout van zijn component, `characters` op een
+    tekstlaag binnen een instance vraagt een geladen font, en alleen een
+    instance die direct in een component staat kan exposed worden
 
 Punt 8, 9 en 10 staan er sinds ze in Figma zelf misgingen terwijl de smoke test
 groen stond. De mock zette destijds een `name` op de definitie en wierp een
@@ -402,6 +478,17 @@ veld de naam van de variable terug uit de gebouwde boom. Anders zou een import
 die alles aan het verkeerde token hangt net zo groen zijn. Ook getest: een
 import zonder variables in het bestand wordt geweigerd, en de tweede
 iconimport houdt de node-ids gelijk in plaats van te vervangen.
+
+De componenten gaan in afhankelijkheidsvolgorde, zoals een designer ze ook
+moet importeren. Daarvóór staat een controle dat een samenstelling geweigerd
+wordt zolang zijn doelsets ontbreken. Per set met instances kijkt de test of
+elke instance aan de juiste variant hangt, bij de tweede import hergebruikt
+is, exposed is waar dat hoort, en of elke override met de juiste variable op
+de geneste laag landt. Aan het eind wordt elke doelset nog een keer
+geïmporteerd, en moeten de instances in elke samenstelling daarna nog aan die
+set hangen mét hun overrides op de geneste lagen. Dat laatste staat erin sinds
+het in Figma misging: de tekst in een HeadingGroup viel na een nieuwe import
+van `heading.json` terug van FILL naar HUG.
 
 Elk component wordt **twee keer** geïmporteerd, en alle controles kijken naar
 het resultaat van de tweede. Een import die alleen op een leeg bestand klopt is
@@ -441,9 +528,11 @@ goed, op één geplaatste instance) is de controle daarop.
   "Idempotent" hierboven.
 - **Een droogloop.** Er is nog geen stand waarin de plugin eerst toont wat er
   zou veranderen voordat hij het doet.
-- **Geneste componenten hergebruiken.** De Heading en Paragraph in een Alert of
-  een Note zijn gemeten lagen, geen instances van de losse component sets. Voor
-  iconen gebeurt dat wél.
+- **Geneste componenten overal.** Het mechanisme staat (zie "Geneste
+  componenten"), en staat aan voor HeadingGroup, Alert, Note, FormField,
+  ModalDialog en de ketens van Checkbox en Radio. De andere sets die er
+  baat bij hebben (zie `nog gemeten, kan instance worden` in de build)
+  volgen per matrix met `instances: true`.
 - **Effect styles.** Box shadows staan in het skip-report en moeten nog
   Figma-effectstijlen worden.
 - **Booleans die tokens veranderen.** `iconOnly`, `loading` en `fullWidth` bij
