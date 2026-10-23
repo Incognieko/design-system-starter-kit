@@ -150,6 +150,25 @@ const OVERRIDE_FIELDS = [
   'textAlignHorizontal',
 ];
 
+/**
+ * Sizing hoort bij de plek in de host, niet bij het component. Een label dat in
+ * een losse CheckboxOption hugt, vult in een CheckboxGroup de breedte; dat is
+ * dezelfde CheckboxOption op een andere plek, en dus een override en geen
+ * andere opbouw.
+ */
+const SIZING_FIELDS = ['layoutSizingHorizontal', 'layoutSizingVertical'];
+
+/** De overrides van een instance zonder hun sizing, om op opbouw te vergelijken. */
+function withoutSizing(overrides) {
+  return (overrides ?? [])
+    .map((override) => {
+      const rest = { ...override };
+      for (const field of SIZING_FIELDS) delete rest[field];
+      return rest;
+    })
+    .filter((override) => Object.keys(override).length > 1);
+}
+
 /** Tekstinhoud telt niet mee voor de keuze van een variant, wel als override. */
 const CONTENT_FIELDS = new Set(['characters']);
 
@@ -190,7 +209,9 @@ function structuralDifference(measured, target, label) {
     ) {
       return `${label}: instance van ${measured.component} (${measured.variant}) tegenover ${target.component} (${target.variant})`;
     }
-    if (!same(measured.overrides, target.overrides)) {
+    if (
+      !same(withoutSizing(measured.overrides), withoutSizing(target.overrides))
+    ) {
       return `${label}: geneste instance met andere overrides`;
     }
     return null;
@@ -275,9 +296,13 @@ function collectDifferences(measured, target, nodePath, into) {
     });
   }
 
-  // Een geneste instance draagt zijn eigen overrides; die zijn hierboven al
-  // gelijk bevonden (zie `structuralDifference`).
-  if (measured.type === 'INSTANCE') return into;
+  // Een geneste instance draagt zijn eigen overrides. Op de sizing na zijn die
+  // al gelijk bevonden (zie `structuralDifference`); wat aan sizing verschilt
+  // gaat als override op de laag binnen die instance, met het pad erdoorheen.
+  if (measured.type === 'INSTANCE') {
+    collectSizingDifferences(measured, target, nodePath, into);
+    return into;
+  }
 
   (measured.children ?? []).forEach((child, index) =>
     collectDifferences(
@@ -288,6 +313,54 @@ function collectDifferences(measured, target, nodePath, into) {
     )
   );
   return into;
+}
+
+/**
+ * De sizing die bij een geneste instance anders is dan in de doelset: op de
+ * instance zelf, en op de lagen die zijn eigen overrides aanwijzen.
+ */
+function collectSizingDifferences(measured, target, nodePath, into) {
+  const push = (path, fields) => {
+    if (!Object.keys(fields).length) return;
+    const existing = into.find((override) => same(override.path, path));
+    if (existing) Object.assign(existing, fields);
+    else into.push({ path, ...fields });
+  };
+
+  const own = {};
+  for (const field of SIZING_FIELDS) {
+    if (measured[field] !== undefined && measured[field] !== target[field]) {
+      own[field] = measured[field];
+    }
+  }
+  push(nodePath, own);
+
+  // Per laag binnen de instance: wat de host daar zet tegenover wat de
+  // doelset er zet. Ontbreekt het aan één kant, dan is dat de standaard van
+  // het component zelf, en voor een laag in auto layout is dat HUG.
+  const paths = new Map();
+  for (const override of [
+    ...(measured.overrides ?? []),
+    ...(target.overrides ?? []),
+  ]) {
+    paths.set(JSON.stringify(override.path), override.path);
+  }
+  for (const [key, path] of paths) {
+    const mine = (measured.overrides ?? []).find(
+      (override) => JSON.stringify(override.path) === key
+    );
+    const theirs = (target.overrides ?? []).find(
+      (override) => JSON.stringify(override.path) === key
+    );
+    const fields = {};
+    for (const field of SIZING_FIELDS) {
+      const wanted = mine?.[field] ?? (theirs?.[field] ? 'HUG' : undefined);
+      if (wanted !== undefined && wanted !== theirs?.[field]) {
+        fields[field] = wanted;
+      }
+    }
+    push([...nodePath, ...path], fields);
+  }
 }
 
 /** Hoeveel velden er verschillen, zonder de tekstinhoud. */
@@ -365,8 +438,12 @@ function chooseVariant(measured, target, explicit, label) {
   }
 
   if (!scored.length) {
+    // De variant waar de opbouw het diepst overeenkomt zit er het dichtst bij;
+    // die reden zegt het meest over wat er mis is.
+    const depth = (reason) => reason.split(' > ').length;
+    const closest = [...rejected].sort((a, b) => depth(b) - depth(a))[0];
     throw new Error(
-      `${label} is een ${target.name}, maar heeft een andere opbouw dan elke variant van die set, dus er is niets om een override op te leggen. ${rejected[0]}. Zet data-figma-instance="none" als dit bewust een eigen laag is.`
+      `${label} is een ${target.name}, maar heeft een andere opbouw dan elke variant van die set, dus er is niets om een override op te leggen. Het dichtst bij: ${closest}. Zet data-figma-instance="none" als dit bewust een eigen laag is.`
     );
   }
 

@@ -420,6 +420,14 @@ function buildInstance(spec, parent, context) {
   }
   instance.name = spec.name ?? component.name;
 
+  // Eerst de plek en de maat in de host, dan de overrides. Een override die
+  // een laag binnen de instance op FILL zet vraagt een ouder die zelf niet
+  // hugt, en een instance erft de HUG van zijn component tot hij hier een
+  // eigen maat krijgt. Een CheckboxOption in een CheckboxGroup is daar het
+  // voorbeeld van: in de groep vult zijn label de breedte.
+  applyPlacement(instance, spec, context.log);
+  applySizing(instance, spec, context.log);
+
   applyOverrides(instance, spec, context, {
     applyBindings,
     applyPaints,
@@ -428,8 +436,6 @@ function buildInstance(spec, parent, context) {
       current,
   });
 
-  applyPlacement(instance, spec, context.log);
-  applySizing(instance, spec, context.log);
   applyRotation(instance, spec, context.log);
 
   // "Exposed": de properties van het geneste component (de `label` van een

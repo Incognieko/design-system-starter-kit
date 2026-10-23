@@ -251,14 +251,18 @@ plaatst een instance van precies die variant.
 
 Daarna:
 
-1. **Overrides.** Per laag, op het pad uit de spec. Eerst het font, dan de
+1. **Plek en maat.** Eerst in de host, vóór de overrides. Een override die een
+   laag binnen de instance op FILL zet vraagt een ouder die niet hugt, en een
+   instance erft de HUG van zijn component tot hij hier zijn eigen maat krijgt.
+   Een CheckboxOption in een CheckboxGroup is daar het voorbeeld van.
+2. **Overrides.** Per laag, op het pad uit de spec. Eerst het font, dan de
    tekst, dan de velden, dan de bindingen, en als laatste de sizing: FILL kan
    pas als de laag in de instance aan zijn auto-layout ouder hangt. Een
    override die niet landt is een `error` in de log.
-2. **Fonts vooraf.** Een override op `characters` kan alleen met een geladen
+3. **Fonts vooraf.** Een override op `characters` kan alleen met een geladen
    font, en dat font komt uit het doelcomponent, niet uit deze spec. De fonts
    van de tekstlagen in elk doelcomponent worden daarom aan het begin geladen.
-3. **Exposed.** Heeft de doelset eigen component properties, dan staat de
+4. **Exposed.** Heeft de doelset eigen component properties, dan staat de
    instance op `isExposedInstance`. De `label` van de Heading staat dan in het
    paneel van de HeadingGroup.
 
@@ -523,9 +527,9 @@ goed, op één geplaatste instance) is de controle daarop.
 - **Een droogloop.** Er is nog geen stand waarin de plugin eerst toont wat er
   zou veranderen voordat hij het doet.
 - **Geneste componenten overal.** Het mechanisme staat (zie "Geneste
-  componenten"), maar alleen HeadingGroup, Alert en Note staan er al op. De
-  keten van Checkbox en Radio, FormField en ModalDialog volgen per matrix met
-  `instances: true`.
+  componenten"), maar alleen HeadingGroup, Alert, Note, CheckboxOption en
+  CheckboxGroup staan er al op. De keten van Radio, FormField en ModalDialog
+  volgen per matrix met `instances: true`.
 - **Effect styles.** Box shadows staan in het skip-report en moeten nog
   Figma-effectstijlen worden.
 - **Booleans die tokens veranderen.** `iconOnly`, `loading` en `fullWidth` bij

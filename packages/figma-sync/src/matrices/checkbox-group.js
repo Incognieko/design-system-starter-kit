@@ -17,6 +17,8 @@ import { TEKST } from '../text.js';
 export default {
   component: 'CheckboxGroup',
 
+  instances: true,
+
   fonts: [
     'https://fonts.googleapis.com/css2?family=Fira+Sans:wght@400;700&display=swap',
   ],

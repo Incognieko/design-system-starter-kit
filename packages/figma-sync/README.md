@@ -772,13 +772,28 @@ worden:
 
 Dat staat ook in de spec, als `instanceCandidates`. Zo kan het patroon per
 component aan, en is in Figma te bevestigen dat het werkt voordat de hele
-bibliotheek omgaat. HeadingGroup, Alert en Note staan erop; de keten van
-Checkbox en Radio, FormField en ModalDialog volgen.
+bibliotheek omgaat. HeadingGroup, Alert, Note, CheckboxOption en
+CheckboxGroup staan erop; de keten van Radio, FormField en ModalDialog volgen.
 
 Bij Alert en Note komt er geen enkele kleur- of typografie-override mee, en
 dat klopt: `heading.css` en `paragraph.css` zetten hun kleur met hun eigen
 tokens, en Alert en Note overschrijven die niet. Alleen de FILL op de
 tekstlaag gaat mee, zodat de tekst in de cel afbreekt.
+
+**Sizing is een override, geen andere opbouw.** In een losse CheckboxOption
+hugt het label, in een CheckboxGroup vult het de breedte. Dat is dezelfde
+CheckboxOption op een andere plek. Bij het vergelijken telt de sizing van een
+geneste instance daarom niet mee, en wat verschilt gaat als override op de
+laag binnen die instance, met het pad erdoorheen: `[1, 0]` is de tekst in het
+label in de optie.
+
+**De variant komt uit de meting, ook voor pseudo-toestanden.** De hover van
+een CheckboxOption hangt aan het `<input>` van zijn Checkbox, en de vergelijking
+koppelt die zonder markering aan `interaction=hover` van de Checkbox-set.
+
+`dependsOn` noemt alleen wat er werkelijk in de set staat. Een CheckboxGroup
+hangt af van `dsn-checkbox-option`; de Checkbox zit binnen die instance en is
+een afhankelijkheid van die set. De volgorde klopt via de keten.
 
 Zet een keten **van onderaf** aan. In een CheckboxGroup op instances wordt ook
 de Checkbox binnen elke optie een instance, en dan moet de CheckboxOption-set

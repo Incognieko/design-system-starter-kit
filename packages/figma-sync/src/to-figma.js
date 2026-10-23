@@ -1606,9 +1606,8 @@ export function toComponentSet(
   const warnings = [];
   const report = createBindingReport();
 
-  // De sets waar deze matrix instances van bevat, en de blokken die er wel
-  // in staan maar (nog) geen instance worden. Zie instances.js.
-  const dependsOn = new Map();
+  // De blokken die als instance in aanmerking komen maar het (nog) niet
+  // worden. Zie instances.js.
   const candidates = new Set();
   const resolveInstance = (block, converted, node, label) => {
     candidates.add(block);
@@ -1630,7 +1629,6 @@ export function toComponentSet(
       return converted;
     }
 
-    dependsOn.set(target.name, { name: target.name, page: target.page });
     return toInstance(converted, node, target, label);
   };
 
@@ -1716,6 +1714,20 @@ export function toComponentSet(
       (total, child) => total + countBindings(child),
       0
     );
+
+  // De sets waar deze set instances van bevat. Alleen wat er werkelijk in de
+  // boom staat: de Checkbox in een CheckboxGroup zit binnen de
+  // CheckboxOption-instance en is een afhankelijkheid van díe set, niet van de
+  // groep. De volgorde klopt daarna vanzelf via de keten.
+  const dependsOn = new Map();
+  const collectTargets = (node) => {
+    if (node.type === 'INSTANCE') {
+      dependsOn.set(node.component, { name: node.component, page: node.page });
+      return;
+    }
+    for (const child of node.children ?? []) collectTargets(child);
+  };
+  for (const component of components) collectTargets(component.node);
 
   // Vóór report.summary(): de achtergrondbinding telt mee in hetzelfde rapport.
   const canvas = canvasFor(defaultIndex, report);
