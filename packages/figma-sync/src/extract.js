@@ -120,6 +120,9 @@ const CAPTURED_PROPERTIES = [
   'alignItems',
   'justifyContent',
   'alignSelf',
+  // Alleen gelezen om FILL te herkennen: een kind met `flex: 1` in een rij
+  // vult de rest van die rij, zoals de kop in de header van ModalDialog.
+  'flexGrow',
   'gridTemplateColumns',
   'gridTemplateRows',
   'gridColumnStart',

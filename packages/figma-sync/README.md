@@ -497,6 +497,10 @@ op een vaste 241×40 terwijl hij net als Button met zijn tekst hoort mee te
 groeien. Naar `display` kijken is daar niet genoeg: de browser rekent
 `inline-block` op een absoluut element om naar `block`.
 
+Een kind met `flex-grow` in een rij krijgt FILL: het neemt de ruimte die over
+is, zoals de kop in de header van ModalDialog, Drawer en Popover, en de link in
+MenuLink.
+
 Tekst aan het eind van een rij krijgt FILL. In CSS is tekst in een flex-rij een
 item dat mag krimpen en dan afbreekt; in Figma breekt tekst alleen af als de
 laag een breedte heeft, en op HUG groeit hij de rij uit. Dat geldt alleen in een
@@ -752,6 +756,14 @@ Staat een instance in de host op FIXED, en is die breedte precies wat het
 component zelf op HUG meet, dan hugt de instance. De knoppen in de footer van
 ModalDialog stonden anders op een vaste 129px, gemeten mét de chevrons die in
 Figma via `showIconStart` en `showIconEnd` uit staan.
+
+**Een ander token weegt lichter dan een andere waarde.** De kop van een
+ModalDialog is geen `dsn-heading` maar `dsn-modal-dialog-heading`, met eigen
+tokens die op dezelfde maat uitkomen als `heading-4`. De matrix wijst hem aan
+met `data-figma-instance="dsn-heading"`, en bij het kiezen telt een verschil
+in waarde zwaarder dan dezelfde waarde aan een ander token. Zo wint
+`heading-4`, en gaan de tokens van de dialoog (`modal-dialog/heading/*`) als
+override mee: de laag blijft aan het token van de host hangen.
 
 **Wat (nog) geen variant heeft, blijft gemeten.** De sluitknop van ModalDialog
 is icon-only, en daar heeft de Button-set geen variant voor (issue #323). Hij

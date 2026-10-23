@@ -69,7 +69,7 @@ export default {
 
     return `<dialog class="dsn-modal-dialog" open data-figma-root>
       <div class="dsn-modal-dialog__header">
-        <h2 class="dsn-modal-dialog-heading">${HEADING}</h2>
+        <h2 class="dsn-modal-dialog-heading" data-figma-instance="dsn-heading">${HEADING}</h2>
         <button type="button" class="dsn-button dsn-button--subtle dsn-button--size-small dsn-button--icon-only" data-figma-instance="none">
           ${icon('x')}
           <span class="dsn-button__label">Sluiten</span>

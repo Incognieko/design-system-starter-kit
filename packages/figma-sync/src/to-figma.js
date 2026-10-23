@@ -624,6 +624,17 @@ function applyChildPlacement(
     converted.layoutSizingHorizontal = 'FILL';
   }
 
+  // `flex-grow` in een rij is in Figma FILL: het kind neemt de ruimte die
+  // over is. Zonder dit stond de kop in de header van ModalDialog op HUG en
+  // schoof de sluitknop mee met de lengte van de titel.
+  if (
+    !outOfFlow &&
+    parentLayout.layoutMode === 'HORIZONTAL' &&
+    Number.parseFloat(styles.flexGrow) > 0
+  ) {
+    converted.layoutSizingHorizontal = 'FILL';
+  }
+
   if (styles.position === 'absolute' || styles.position === 'fixed') {
     // Een absoluut kind valt buiten de stroom; Figma houdt het op zijn plek
     // ten opzichte van de ouder in plaats van het mee te laten stromen.

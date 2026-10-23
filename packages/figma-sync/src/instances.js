@@ -244,7 +244,13 @@ function structuralDifference(measured, target, label) {
  * heen, en dan zit die tekst op `[0]` binnen de instance en niet op de
  * instance zelf. `rootPath` geeft dat verschil mee.
  */
-function collectDifferences(measured, target, nodePath, into) {
+function collectDifferences(
+  measured,
+  target,
+  nodePath,
+  into,
+  tally = { values: 0, tokens: 0 }
+) {
   const fields = {};
   const bindings = {};
   const unbind = [];
@@ -259,6 +265,7 @@ function collectDifferences(measured, target, nodePath, into) {
       continue;
     }
     fields[field] = measured[field];
+    if (!CONTENT_FIELDS.has(field)) tally.values += 1;
   }
 
   // Een binding hoort bij zijn veld: dezelfde waarde aan een ander token is
@@ -275,6 +282,7 @@ function collectDifferences(measured, target, nodePath, into) {
       bindings[field] = mine;
       if (!(field in fields) && measured[field] !== undefined) {
         fields[field] = measured[field];
+        tally.tokens += 1;
       }
     } else if (theirs && field in fields) {
       // De host zet hier een vaste waarde neer waar het component een token
@@ -309,7 +317,8 @@ function collectDifferences(measured, target, nodePath, into) {
       child,
       target.children[index],
       [...nodePath, index],
-      into
+      into,
+      tally
     )
   );
   return into;
@@ -363,23 +372,17 @@ function collectSizingDifferences(measured, target, nodePath, into) {
   }
 }
 
-/** Hoeveel velden er verschillen, zonder de tekstinhoud. */
-function score(overrides) {
-  return overrides.reduce(
-    (total, override) =>
-      total +
-      Object.keys(override).filter(
-        (key) =>
-          key !== 'path' &&
-          key !== 'boundVariables' &&
-          key !== 'unbind' &&
-          !CONTENT_FIELDS.has(key)
-      ).length +
-      Object.keys(override.boundVariables ?? {}).filter(
-        (key) => !(key in override)
-      ).length,
-    0
-  );
+/**
+ * Hoe ver een variant van de meting af zit.
+ *
+ * Een andere waarde telt zwaarder dan dezelfde waarde aan een ander token. De
+ * kop van een ModalDialog heeft de maat van `heading-4` maar eigen tokens
+ * (`modal-dialog-heading/*`); zou een tokenverschil even zwaar tellen, dan zat
+ * elke Heading-variant even ver weg en was er niets te kiezen. Het token gaat
+ * wel als override mee, zodat de laag aan het token van de host blijft hangen.
+ */
+function score({ values, tokens }) {
+  return values + tokens / 1000;
 }
 
 /** `appearance=heading-3, size=small` -> `{ appearance: 'heading-3', size: 'small' }`. */
@@ -428,13 +431,15 @@ function chooseVariant(measured, target, explicit, label) {
       rejected.push(`${component.name}: ${difference}`);
       continue;
     }
+    const tally = { values: 0, tokens: 0 };
     const overrides = collectDifferences(
       measured,
       component.node,
       rootPath,
-      []
+      [],
+      tally
     );
-    scored.push({ component, overrides, score: score(overrides) });
+    scored.push({ component, overrides, score: score(tally) });
   }
 
   if (!scored.length) {
