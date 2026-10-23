@@ -514,6 +514,19 @@ export function toInstance(measured, node, target, label) {
   // inklapt heeft er zelf geen (een tekstlaag hugt), en staat in de host dan
   // op de breedte die de tekst daar kreeg.
   instance.layoutSizingHorizontal = measured.layoutSizingHorizontal ?? 'HUG';
+
+  // Een vaste breedte die gelijk is aan de natuurlijke breedte van het
+  // component zegt niets over de host: dan hugt de instance, net als het
+  // component zelf. Zonder dit stond een Button in de footer van een
+  // ModalDialog op een vaste 129px, gemeten mét de chevrons die in Figma via
+  // `showIconStart` en `showIconEnd` uit staan, en was hij daar dus te breed.
+  if (
+    instance.layoutSizingHorizontal === 'FIXED' &&
+    component.node.layoutSizingHorizontal === 'HUG' &&
+    Math.abs((measured.width ?? 0) - (component.node.width ?? -1)) < 0.5
+  ) {
+    instance.layoutSizingHorizontal = 'HUG';
+  }
   instance.layoutSizingVertical = target.wrapped
     ? 'HUG'
     : (measured.layoutSizingVertical ?? 'HUG');

@@ -747,6 +747,16 @@ Dat vergelijken is de reden dat de build nu eerst álle matrices meet en pas
 daarna omzet: een samenstelling heeft de spec van zijn doelsets nodig, en
 welke dat zijn blijkt pas uit de meting.
 
+**Een vaste breedte gelijk aan de natuurlijke breedte is geen vaste breedte.**
+Staat een instance in de host op FIXED, en is die breedte precies wat het
+component zelf op HUG meet, dan hugt de instance. De knoppen in de footer van
+ModalDialog stonden anders op een vaste 129px, gemeten mét de chevrons die in
+Figma via `showIconStart` en `showIconEnd` uit staan.
+
+**Wat (nog) geen variant heeft, blijft gemeten.** De sluitknop van ModalDialog
+is icon-only, en daar heeft de Button-set geen variant voor (issue #323). Hij
+draagt `data-figma-instance="none"`.
+
 **3. Overrides.** Wat na die keuze nog verschilt, gaat als override mee: per
 laag, met het pad zoals het in Figma staat. Een component dat tot één
 tekstlaag inklapt (Heading, Paragraph) krijgt in de plugin een frame om zich
@@ -786,8 +796,8 @@ worden:
 
 Dat staat ook in de spec, als `instanceCandidates`. Zo kan het patroon per
 component aan, en is in Figma te bevestigen dat het werkt voordat de hele
-bibliotheek omgaat. HeadingGroup, Alert, Note, FormField en de ketens van
-Checkbox en Radio (Option en Group) staan erop; ModalDialog volgt.
+bibliotheek omgaat. HeadingGroup, Alert, Note, FormField, ModalDialog en de
+ketens van Checkbox en Radio (Option en Group) staan erop.
 
 **De matrix rendert de opbouw van het component, niet een kortere versie.**
 FormFieldLabel heeft in zijn eigen set een suffix-laag die via `showSuffix`
