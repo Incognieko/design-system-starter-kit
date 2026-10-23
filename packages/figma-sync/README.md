@@ -526,7 +526,12 @@ als aantoonbaar is dat er niets van verschuift:
 
 Overlappen de kinderen, staan ze naast elkaar, verschillen de gaten, of is er
 een absoluut gepositioneerd kind bij, dan blijft het frame zonder auto layout
-en komt de padding als vanouds in het rapport. Dat gebeurt bijvoorbeeld bij de
+en komt de padding als vanouds in het rapport.
+
+Elk kind van zo'n frame draagt zijn gemeten `x` en `y`, ook een tekstlaag, en
+de plugin zet ze relatief aan de ouder. Tot #369 gebeurde dat alleen voor
+absoluut gepositioneerde kinderen, en lag de rest op 0,0: bij een FormField
+met beschrijving stonden het label, de beschrijving en het veld over elkaar. Dat gebeurt bijvoorbeeld bij de
 `invalid`-variant van FormField, waar de marge onder het label verandert zodra
 er een beschrijving achter staat.
 
@@ -781,8 +786,21 @@ worden:
 
 Dat staat ook in de spec, als `instanceCandidates`. Zo kan het patroon per
 component aan, en is in Figma te bevestigen dat het werkt voordat de hele
-bibliotheek omgaat. HeadingGroup, Alert, Note en de ketens van Checkbox en
-Radio (Option en Group) staan erop; FormField en ModalDialog volgen.
+bibliotheek omgaat. HeadingGroup, Alert, Note, FormField en de ketens van
+Checkbox en Radio (Option en Group) staan erop; ModalDialog volgt.
+
+**De matrix rendert de opbouw van het component, niet een kortere versie.**
+FormFieldLabel heeft in zijn eigen set een suffix-laag die via `showSuffix`
+standaard uit staat. Liet de FormField-matrix die laag weg, dan verschilde de
+opbouw en stopte de build. Met de suffix erbij koppelt het label zonder
+verschillen, en staat de suffix in de instance uit, net als in de losse set.
+
+**Breedte kiest geen variant.** De varianten van `inlineSize` bij TextInput
+verschillen alleen in breedte, en breedte hoort bij de plek in de host, dus de
+vergelijking kijkt er niet naar. Zonder markering zou de eerste variant in de
+lijst winnen. FormField zet daarom `data-figma-variant="inlineSize=auto"` op
+het veld; de rest van de variant (invalid, state) komt nog steeds uit de
+meting.
 
 Bij Alert en Note komt er geen enkele kleur- of typografie-override mee, en
 dat klopt: `heading.css` en `paragraph.css` zetten hun kleur met hun eigen

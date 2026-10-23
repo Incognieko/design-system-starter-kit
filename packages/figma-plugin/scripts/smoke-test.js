@@ -1034,6 +1034,37 @@ for (const file of componentFiles) {
       : ''
   );
 
+  // Een frame zonder auto layout plaatst zijn kinderen niet zelf. Zonder een
+  // expliciete x en y komt elk kind op 0,0, en dan liggen het label en de
+  // beschrijving van een FormField over elkaar: dat stond er zo tot #369.
+  const misplaced = [];
+  const checkPositions = (node, spec) => {
+    if (spec && spec.layoutMode === 'NONE' && spec.type === 'FRAME') {
+      (spec.children ?? []).forEach((childSpec, index) => {
+        const child = node?.children?.[index];
+        if (childSpec.x === undefined || childSpec.layoutPositioning) return;
+        const x = childSpec.x - (spec.x ?? 0);
+        const y = childSpec.y - (spec.y ?? 0);
+        if (Math.abs(child?.x - x) > 0.5 || Math.abs(child?.y - y) > 0.5) {
+          misplaced.push(
+            `${childSpec.name ?? childSpec.type}: ${child?.x},${child?.y} i.p.v. ${x},${y}`
+          );
+        }
+      });
+    }
+    (spec?.children ?? []).forEach((childSpec, index) =>
+      checkPositions(node?.children?.[index], childSpec)
+    );
+  };
+  payload.componentSet.components.forEach((component, index) =>
+    checkPositions(built(index), component.node)
+  );
+  check(
+    'in een frame zonder auto layout staat elk kind op zijn gemeten plek',
+    misplaced.length === 0,
+    misplaced.length ? `${misplaced.length}x, o.a. ${misplaced[0]}` : ''
+  );
+
   check(
     'een FIXED as houdt de gemeten maat',
     wrongSizes.length === 0,

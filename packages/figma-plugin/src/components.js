@@ -201,13 +201,24 @@ function applyMinimumSizes(frame, spec, log) {
 }
 
 /** Plaatsing van een kind binnen zijn ouder: absoluut of in een gridcel. */
-function applyPlacement(node, spec, log) {
+function applyPlacement(node, spec, log, parentSpec) {
   try {
     if (spec.layoutPositioning === 'ABSOLUTE') {
       node.layoutPositioning = 'ABSOLUTE';
       if (spec.x !== undefined) node.x = spec.x;
       if (spec.y !== undefined) node.y = spec.y;
       return;
+    }
+    // Een ouder zonder auto layout plaatst niets zelf: zonder deze stap komt
+    // elk kind op 0,0 en liggen ze over elkaar. Zo'n ouder ontstaat waar de
+    // ruimte tussen de kinderen uit ongelijke marges komt, zoals bij een
+    // FormField met een beschrijving.
+    //
+    // De gemeten plek is relatief aan de root van het component, Figma wil hem
+    // relatief aan de ouder.
+    if (node.parent?.layoutMode === 'NONE' && node.parent.type !== 'PAGE') {
+      if (spec.x !== undefined) node.x = spec.x - (parentSpec?.x ?? 0);
+      if (spec.y !== undefined) node.y = spec.y - (parentSpec?.y ?? 0);
     }
     if (spec.gridColumnAnchorIndex !== undefined) {
       // gridColumnAnchorIndex en gridRowAnchorIndex zijn read-only; plaatsing
@@ -400,7 +411,7 @@ function buildIcon(spec, parent, context) {
  * noemt. Of dat op een geplaatste instance van de host goed gaat, is een van
  * de dingen die alleen in Figma zelf te meten zijn.
  */
-function buildInstance(spec, parent, context) {
+function buildInstance(spec, parent, context, parentSpec) {
   const component = context.instanceTargets.get(
     `${spec.component}|${spec.variant}`
   );
@@ -425,7 +436,7 @@ function buildInstance(spec, parent, context) {
   // hugt, en een instance erft de HUG van zijn component tot hij hier een
   // eigen maat krijgt. Een CheckboxOption in een CheckboxGroup is daar het
   // voorbeeld van: in de groep vult zijn label de breedte.
-  applyPlacement(instance, spec, context.log);
+  applyPlacement(instance, spec, context.log, parentSpec);
   applySizing(instance, spec, context.log);
 
   applyOverrides(instance, spec, context, {
@@ -463,7 +474,7 @@ function buildInstance(spec, parent, context) {
  * @param {object} context `{ fonts, log, variables, stats }`
  * @returns {SceneNode}
  */
-function buildNode(spec, parent, context) {
+function buildNode(spec, parent, context, parentSpec) {
   const { fonts, log } = context;
 
   if (spec.type === 'TEXT') {
@@ -491,7 +502,7 @@ function buildNode(spec, parent, context) {
     text.name = spec.name ?? spec.characters ?? 'Text';
 
     applyBindings(text, spec, context);
-    applyPlacement(text, spec, log);
+    applyPlacement(text, spec, log, parentSpec);
     applySizing(text, spec, log);
     applyRotation(text, spec, log);
     registerSlot(text, spec, context);
@@ -500,7 +511,7 @@ function buildNode(spec, parent, context) {
   }
 
   if (spec.type === 'INSTANCE') {
-    return buildInstance(spec, parent, context);
+    return buildInstance(spec, parent, context, parentSpec);
   }
 
   if (spec.type === 'VECTOR') {
@@ -516,7 +527,7 @@ function buildNode(spec, parent, context) {
     const paints = paintsForVector(spec, context);
     recolorVectors(node.children ?? [], paints);
     context.recolors.push({ node, paints, name: spec.name, spec });
-    applyPlacement(node, spec, log);
+    applyPlacement(node, spec, log, parentSpec);
     applyRotation(node, spec, log);
     registerSlot(node, spec, context);
     registerColorCheck(node, spec, context);
@@ -527,7 +538,7 @@ function buildNode(spec, parent, context) {
   parent.appendChild(frame);
   applyFrame(frame, spec, context);
 
-  applyPlacement(frame, spec, log);
+  applyPlacement(frame, spec, log, parentSpec);
   applySizing(frame, spec, log);
   applyRotation(frame, spec, log);
   registerSlot(frame, spec, context);
@@ -585,7 +596,9 @@ function applyFrame(frame, spec, context, name = spec.name ?? 'Frame') {
   applyMinimumSizes(frame, spec, context.log);
   applyBindings(frame, spec, context);
 
-  for (const child of spec.children ?? []) buildNode(child, frame, context);
+  for (const child of spec.children ?? []) {
+    buildNode(child, frame, context, spec);
+  }
 }
 
 /**

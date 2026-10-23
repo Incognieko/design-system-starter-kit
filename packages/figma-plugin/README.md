@@ -460,7 +460,9 @@ af die in Figma echt fouten geven:
    (`as=waarde, as=waarde`)
 10. een instance swap property koppelen verwisselt de laag, en dat wist de
     overrides op zijn geneste lagen
-11. een instance draagt de auto layout van zijn component, `characters` op een
+11. in een frame zonder auto layout staat elk kind op zijn gemeten plek,
+    relatief aan zijn ouder (dat was tot #369 alleen zo voor absolute kinderen)
+12. een instance draagt de auto layout van zijn component, `characters` op een
     tekstlaag binnen een instance vraagt een geladen font, en alleen een
     instance die direct in een component staat kan exposed worden
 
@@ -527,9 +529,9 @@ goed, op één geplaatste instance) is de controle daarop.
 - **Een droogloop.** Er is nog geen stand waarin de plugin eerst toont wat er
   zou veranderen voordat hij het doet.
 - **Geneste componenten overal.** Het mechanisme staat (zie "Geneste
-  componenten"), maar alleen HeadingGroup, Alert, Note en de ketens van
-  Checkbox en Radio staan er al op. FormField en ModalDialog volgen per matrix
-  met `instances: true`.
+  componenten"), maar alleen HeadingGroup, Alert, Note, FormField en de
+  ketens van Checkbox en Radio staan er al op. ModalDialog volgt met
+  `instances: true`.
 - **Effect styles.** Box shadows staan in het skip-report en moeten nog
   Figma-effectstijlen worden.
 - **Booleans die tokens veranderen.** `iconOnly`, `loading` en `fullWidth` bij

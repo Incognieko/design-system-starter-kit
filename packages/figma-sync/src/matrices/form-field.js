@@ -20,6 +20,18 @@ import { FLAG } from '../flags.js';
 export default {
   component: 'FormField',
 
+  // Het label, de beschrijving, de foutmelding en het veld zijn instances van
+  // hun eigen sets. Het label rendert daarom dezelfde opbouw als
+  // FormFieldLabel, mét de suffix: die staat in de instance uit via
+  // `showSuffix`, net als in de losse set. Zonder die laag verschilt de opbouw
+  // en is er niets om een override op te leggen.
+  //
+  // De breedte van het veld staat er expliciet bij. De varianten van
+  // `inlineSize` verschillen alleen in breedte, en breedte vergelijkt de
+  // generator bewust niet (die hoort bij de plek in de host), dus de meting
+  // kan er niet tussen kiezen.
+  instances: true,
+
   fonts: [
     'https://fonts.googleapis.com/css2?family=Fira+Sans:wght@400;700&display=swap',
   ],
@@ -61,10 +73,13 @@ export default {
       : '';
 
     return `<div class="${classes}" data-figma-root>
-      <label class="dsn-form-field-label">${TEKST}</label>
+      <label class="dsn-form-field-label">
+        <span>${TEKST}</span>
+        <span class="dsn-form-field-label-suffix">(niet verplicht)</span>
+      </label>
       ${descriptionMarkup}
       ${errorMarkup}
-      <input type="text" class="dsn-text-input"${invalid ? ' aria-invalid="true"' : ''}>
+      <input type="text" class="dsn-text-input" data-figma-variant="inlineSize=auto"${invalid ? ' aria-invalid="true"' : ''}>
     </div>`;
   },
 };

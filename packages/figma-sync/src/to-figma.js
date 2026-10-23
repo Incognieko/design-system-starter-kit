@@ -972,6 +972,10 @@ function convertElement(
       type: 'TEXT',
       name: TEXT_LAYER_NAME,
       characters: node.children[0].text,
+      // De plek in de ouder. Alleen nodig als die ouder geen auto layout
+      // heeft; zonder komt de laag daar op 0,0 te staan.
+      x: node.rect.x,
+      y: node.rect.y,
       ...textStyleFrom(styles, node.tokens, bindings?.index),
     };
   }
