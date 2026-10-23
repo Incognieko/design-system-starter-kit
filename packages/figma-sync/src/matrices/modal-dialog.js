@@ -23,7 +23,7 @@ export default {
   // en `showIconEnd`, net als in de losse set.
   //
   // De sluitknop blijft een gemeten laag. Hij is icon-only, en daar heeft de
-  // Button-set nog geen variant voor: zie issue #323.
+  // Button-set nog geen variant voor: zie issue #451.
   instances: true,
 
   fonts: [

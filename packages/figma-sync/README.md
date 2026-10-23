@@ -766,7 +766,7 @@ deelt maar een andere maat heeft. De eigen tokens gaan dan als override mee,
 zodat de laag aan het token van de host blijft hangen.
 
 **Wat (nog) geen variant heeft, blijft gemeten.** De sluitknop van ModalDialog
-is icon-only, en daar heeft de Button-set geen variant voor (issue #323). Hij
+is icon-only, en daar heeft de Button-set geen variant voor (issue #451). Hij
 draagt `data-figma-instance="none"`.
 
 **3. Overrides.** Wat na die keuze nog verschilt, gaat als override mee: per
@@ -999,6 +999,9 @@ eigen `padding-inline`-tokens, dus als boolean zou de knop de padding van de
 tekstvariant houden. Als as zou hij de set verdrievoudigen. Zolang geen van
 beide bevalt is niets doen het eerlijkste antwoord; zie issue
 [#323](https://github.com/jeffreylauwers/design-system-starter-kit/issues/323).
+Een `iconOnly`-as staat nu als
+[#451](https://github.com/jeffreylauwers/design-system-starter-kit/issues/451)
+op de backlog.
 
 ### Naamgeving
 
