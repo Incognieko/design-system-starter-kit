@@ -10,7 +10,8 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 
 import { extractMatrix } from './extract.js';
-import { toComponentSet } from './to-figma.js';
+import { setNameFor, toComponentSet } from './to-figma.js';
+import { dependencyOrder, findCandidates } from './instances.js';
 import {
   createVariableIndex,
   loadVariablesPayload,
@@ -70,6 +71,42 @@ function pruneStaleSpecs(matrices) {
   return stale;
 }
 
+/**
+ * Wat een instance van een set moet weten: de naam, de pagina, de varianten
+ * om mee te vergelijken, en of de plugin er een frame omheen zet.
+ *
+ * Een component dat tot één tekstlaag of icoon inklapt (Heading, Paragraph)
+ * kan in Figma zichzelf niet zijn: de plugin zet er een frame omheen, en dan
+ * zit de tekst binnen de instance één laag dieper. Dat is `wrapped`.
+ */
+function targetFrom(spec) {
+  const set = spec.componentSet;
+  return {
+    name: set.name,
+    page: set.page,
+    components: set.components,
+    wrapped: set.components[0]?.node.type !== 'FRAME',
+    exposed: (set.componentProperties ?? []).length > 0,
+  };
+}
+
+/** De sets uit een eerdere build, voor zover ze niet in deze run zitten. */
+function loadBuiltTargets(inThisRun) {
+  const targets = new Map();
+  if (!fs.existsSync(outputDir)) return targets;
+
+  for (const file of fs.readdirSync(outputDir)) {
+    if (!file.endsWith('.json') || file === 'icons.json') continue;
+    const spec = JSON.parse(
+      fs.readFileSync(path.join(outputDir, file), 'utf8')
+    );
+    const name = spec.componentSet?.name;
+    if (!name || inThisRun.has(name)) continue;
+    targets.set(name, targetFrom(spec));
+  }
+  return targets;
+}
+
 async function main() {
   const requested = process.argv.slice(2);
   const matrices = await loadMatrices(requested);
@@ -100,7 +137,42 @@ async function main() {
     );
   }
 
+  // Eerst alles meten, dan omzetten. Een matrix met instances heeft bij het
+  // omzetten de spec van zijn doelsets nodig (de variant wordt gekozen door te
+  // vergelijken), dus die moeten eerder omgezet zijn. Welke dat zijn blijkt
+  // pas uit de meting.
+  const measured = new Map();
   for (const { key, matrix } of matrices) {
+    const started = Date.now();
+    measured.set(key, {
+      matrix,
+      extracted: await extractMatrix(matrix),
+      seconds: (Date.now() - started) / 1000,
+    });
+  }
+
+  // Welke set hoort bij welke matrix: uit deze run, en anders uit dist/ van
+  // een eerdere build (bij `build-components heading-group`).
+  const keyForSet = new Map();
+  for (const [key, { matrix, extracted }] of measured) {
+    keyForSet.set(setNameFor(matrix, extracted), key);
+  }
+  const targets = loadBuiltTargets(keyForSet);
+
+  const dependenciesOf = (key) => {
+    const { matrix, extracted } = measured.get(key);
+    if (!matrix.instances) return [];
+    const blocks = new Set();
+    for (const { tree } of extracted) {
+      for (const block of findCandidates(tree)) blocks.add(block);
+    }
+    return [...blocks].map((block) => keyForSet.get(block)).filter(Boolean);
+  };
+
+  const order = dependencyOrder([...measured.keys()], dependenciesOf);
+
+  for (const key of order) {
+    const { matrix, extracted, seconds: measuredSeconds } = measured.get(key);
     const started = Date.now();
     // Eén index per gemeten breedte. De modes van `dsn/Density` hangen aan die
     // breedte, en de verificatie van een binding eist dat het token de gemeten
@@ -126,13 +198,18 @@ async function main() {
         )
       : undefined;
 
-    const extracted = await extractMatrix(matrix);
-    const spec = toComponentSet(matrix, extracted, variableIndexes);
+    const spec = toComponentSet(matrix, extracted, variableIndexes, {
+      targets,
+    });
+    // Vanaf nu kan een volgende matrix er instances van maken.
+    targets.set(spec.componentSet.name, targetFrom(spec));
 
     const destination = path.join(outputDir, `${key}.json`);
     fs.writeFileSync(destination, `${JSON.stringify(spec, null, 2)}\n`);
 
-    const seconds = ((Date.now() - started) / 1000).toFixed(1);
+    const seconds = (measuredSeconds + (Date.now() - started) / 1000).toFixed(
+      1
+    );
     console.log(
       `   ${matrix.component.padEnd(12)} ${String(extracted.length).padStart(3)} varianten  ${seconds}s  -> dist/${key}.json`
     );
@@ -150,6 +227,18 @@ async function main() {
         );
       }
       console.log();
+    }
+
+    const instances = spec.componentSet.dependsOn ?? [];
+    if (instances.length) {
+      console.log(
+        `   ${' '.repeat(12)} instances van ${instances.map((target) => target.name).join(', ')}`
+      );
+    }
+    if (spec.instanceCandidates) {
+      console.log(
+        `   ${' '.repeat(12)} nog gemeten, kan instance worden: ${spec.instanceCandidates.join(', ')}`
+      );
     }
 
     if (spec.warnings.length) {

@@ -24,6 +24,7 @@ import { recolorVectors } from './svg.js';
 import { diagnoseColors } from './diagnose.js';
 import { ICON_PAGE, loadIconIndex } from './icons.js';
 import { findOrCreatePage, openPage, sortManagedPages } from './pages.js';
+import { applyOverrides, resolveInstanceTargets } from './instances.js';
 
 /** Figma verwacht een style-naam, geen numeriek gewicht. */
 const WEIGHT_TO_STYLE = {
@@ -66,6 +67,13 @@ function fontFor(node) {
 function collectFonts(node, into = new Map()) {
   if (node.type === 'TEXT') {
     const font = fontFor(node);
+    into.set(`${font.family}|${font.style}`, font);
+  }
+  // Een override die het font van een geneste tekstlaag verandert heeft dat
+  // font net zo goed nodig.
+  for (const override of node.overrides ?? []) {
+    if (override.fontFamily === undefined) continue;
+    const font = fontFor(override);
     into.set(`${font.family}|${font.style}`, font);
   }
   for (const child of node.children ?? []) collectFonts(child, into);
@@ -380,6 +388,68 @@ function buildIcon(spec, parent, context) {
 }
 
 /**
+ * Een instance van een andere set uit de bibliotheek.
+ *
+ * Net als bij de iconen eerst kijken of de vorige import hier al een instance
+ * van precies deze variant had staan: die hergebruiken houdt zijn node-id
+ * gelijk, en daar hangen de overrides aan die een geplaatste instance van deze
+ * host moet erven. Zie `resetVariant` en issue #388.
+ *
+ * Een hergebruikte instance krijgt eerst zijn overrides teruggezet. Anders
+ * blijft een override uit de vorige import staan die de nieuwe spec niet meer
+ * noemt. Of dat op een geplaatste instance van de host goed gaat, is een van
+ * de dingen die alleen in Figma zelf te meten zijn.
+ */
+function buildInstance(spec, parent, context) {
+  const component = context.instanceTargets.get(
+    `${spec.component}|${spec.variant}`
+  );
+  if (!component) {
+    // `resolveInstanceTargets` heeft dit vooraf al geweigerd; dit is de
+    // vangrail voor een spec die tussendoor veranderde.
+    throw new Error(
+      `${spec.component} (${spec.variant}) staat niet in dit bestand; importeer die set eerst`
+    );
+  }
+
+  const reused = takeReusable(context, component);
+  const instance = reused ?? component.createInstance();
+  parent.appendChild(instance);
+  if (reused && typeof instance.resetOverrides === 'function') {
+    instance.resetOverrides();
+  }
+  instance.name = spec.name ?? component.name;
+
+  applyOverrides(instance, spec, context, {
+    applyBindings,
+    applyPaints,
+    fontFor: (override, current) =>
+      context.fonts.get(`${override.fontFamily}|${fontFor(override).style}`) ??
+      current,
+  });
+
+  applyPlacement(instance, spec, context.log);
+  applySizing(instance, spec, context.log);
+  applyRotation(instance, spec, context.log);
+
+  // "Exposed": de properties van het geneste component (de `label` van een
+  // Heading) staan dan in het paneel van de host, zonder dat de host ze
+  // opnieuw hoeft te declareren.
+  if (spec.exposed) {
+    try {
+      instance.isExposedInstance = true;
+    } catch (error) {
+      context.log.warn(
+        `${spec.name}: kon de instance niet exposen (${error.message}); zijn properties staan niet in het paneel van de host`
+      );
+    }
+  }
+
+  registerSlot(instance, spec, context);
+  return instance;
+}
+
+/**
  * Bouwt één node uit de spec en hangt hem aan `parent`.
  *
  * @param {object} spec node spec uit de generator
@@ -417,6 +487,10 @@ function buildNode(spec, parent, context) {
     registerSlot(text, spec, context);
     registerColorCheck(text, spec, context);
     return text;
+  }
+
+  if (spec.type === 'INSTANCE') {
+    return buildInstance(spec, parent, context);
   }
 
   if (spec.type === 'VECTOR') {
@@ -565,20 +639,35 @@ function clearBoundVariables(node) {
 async function resetVariant(component, context) {
   context.reusable = new Map();
 
-  for (const child of [...component.children]) {
+  // Ook de instances die dieper zitten, in een frame binnen de variant: een
+  // Paragraph in de content van een Alert, een icoon in de control van een
+  // Checkbox. Ze worden naar de variant zelf verhangen voordat de rest weggaat,
+  // anders verdwijnen ze met hun ouder en is hun node-id alsnog kwijt. Binnen
+  // een instance wordt niet gezocht: die lagen zijn van zijn eigen component.
+  const instances = [];
+  const collect = (node) => {
+    for (const child of node.children ?? []) {
+      if (child.type === 'INSTANCE') instances.push(child);
+      else collect(child);
+    }
+  };
+  collect(component);
+
+  const pooled = new Set();
+  for (const instance of instances) {
     // `mainComponent` is onder `documentAccess: dynamic-page` niet synchroon te
     // lezen, vandaar dat de pool hier wordt opgebouwd en niet in `buildIcon`.
-    const main =
-      child.type === 'INSTANCE' ? await mainComponentOf(child, context) : null;
-
-    if (!main) {
-      child.remove();
-      continue;
-    }
-
+    const main = await mainComponentOf(instance, context);
+    if (!main) continue;
+    if (instance.parent !== component) component.appendChild(instance);
     const pool = context.reusable.get(main.id) ?? [];
-    pool.push(child);
+    pool.push(instance);
     context.reusable.set(main.id, pool);
+    pooled.add(instance);
+  }
+
+  for (const child of [...component.children]) {
+    if (!pooled.has(child)) child.remove();
   }
 
   clearBoundVariables(component);
@@ -1151,6 +1240,11 @@ export async function importComponentSet(payload, log, options = {}) {
   log.progress?.(`${spec.name}: iconen zoeken`);
   const icons = await loadIconIndex();
 
+  // De sets waar deze set instances van bevat. Ontbreekt er één, dan stopt de
+  // import hier, vóór er een pagina of variant is aangeraakt.
+  log.progress?.(`${spec.name}: geneste componenten zoeken`);
+  const instanceTargets = await resolveInstanceTargets(spec, log);
+
   const stats = createStats();
   const context = {
     fonts: loaded,
@@ -1158,6 +1252,7 @@ export async function importComponentSet(payload, log, options = {}) {
     variables,
     stats,
     icons,
+    instanceTargets,
     inlinedIcons: new Set(),
     // Per icoonlaag de paints die eroverheen moeten; aan het eind herhaald.
     recolors: [],

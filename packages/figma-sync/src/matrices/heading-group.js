@@ -10,6 +10,17 @@
  * op aangrijpt: PreHeading heeft een eigen kleurtoken, en dat is precies het
  * token dat op een donkere achtergrond vergeten wordt. In Figma is dat nu een
  * eigen laag met een eigen binding, dus zichtbaar.
+ *
+ * Dit is de eerste matrix op `instances: true`: in Figma is HeadingGroup een
+ * frame met een instance van `dsn-pre-heading` en een van `dsn-heading`, geen
+ * eigen nagebouwde typografie. De PreHeading herkent de generator aan zijn
+ * klasse. De Heading niet, want die is hier de root zelf en geen kind: de
+ * tekst hangt direct in de `<h2>`. Vandaar `data-figma-instance` op de span
+ * eromheen; de variant zoekt de generator zelf uit door te vergelijken.
+ *
+ * Geen eigen component properties meer. Beide instances zijn "exposed", dus
+ * de `label` van de Heading en die van de PreHeading staan gewoon in het
+ * paneel van de HeadingGroup.
  */
 
 import { HEADING, TEKST } from '../text.js';
@@ -35,15 +46,12 @@ export default {
     appearance: ['heading-1', 'heading-2', 'heading-3', 'heading-4'],
   },
 
-  componentProperties: [
-    { name: 'preHeading', type: 'TEXT', slot: 'pre-heading' },
-    { name: 'label', type: 'TEXT', slot: 'label' },
-  ],
+  instances: true,
 
   render({ appearance }) {
     return `<h2 class="dsn-heading dsn-heading--${appearance} dsn-heading-group" data-figma-root>
-      <span class="dsn-pre-heading" data-figma-slot="pre-heading">${TEKST}</span>
-      <span data-figma-slot="label">${HEADING}</span>
+      <span class="dsn-pre-heading">${TEKST}</span>
+      <span data-figma-instance="dsn-heading">${HEADING}</span>
     </h2>`;
   },
 };

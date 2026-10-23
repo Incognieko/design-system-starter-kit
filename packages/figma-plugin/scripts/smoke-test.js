@@ -73,11 +73,53 @@ function propertyNameOf(key) {
   return suffix === -1 ? key : key.slice(0, suffix);
 }
 
-const componentFiles = fs
-  .readdirSync(path.join(monorepoRoot, 'packages/figma-sync/dist'))
-  .filter((file) => file.endsWith('.json'))
-  // icons.json heeft een eigen schema en een eigen sectie hieronder.
-  .filter((file) => file !== 'icons.json');
+/**
+ * De componentbestanden, in de volgorde waarin een designer ze moet
+ * importeren: een set die instances van een andere bevat komt ná die andere.
+ * Andersom weigert de plugin, en dan zou de test een situatie testen die in
+ * Figma niet voorkomt.
+ */
+function inDependencyOrder(files) {
+  const specs = new Map(
+    files.map((file) => [file, read(`packages/figma-sync/dist/${file}`)])
+  );
+  const fileForSet = new Map(
+    [...specs].map(([file, spec]) => [spec.componentSet.name, file])
+  );
+  const ordered = [];
+  const done = new Set();
+  const visit = (file) => {
+    if (done.has(file)) return;
+    done.add(file);
+    for (const { name } of specs.get(file).componentSet.dependsOn ?? []) {
+      const dependency = fileForSet.get(name);
+      if (dependency) visit(dependency);
+    }
+    ordered.push(file);
+  };
+  for (const file of files) visit(file);
+  return ordered;
+}
+
+const componentFiles = inDependencyOrder(
+  fs
+    .readdirSync(path.join(monorepoRoot, 'packages/figma-sync/dist'))
+    .filter((file) => file.endsWith('.json'))
+    // icons.json heeft een eigen schema en een eigen sectie hieronder.
+    .filter((file) => file !== 'icons.json')
+);
+
+/** Alle INSTANCE-specs in een boom, met de gebouwde laag ernaast. */
+function pairInstances(node, spec, into = []) {
+  if (spec?.type === 'INSTANCE') {
+    into.push({ node, spec });
+    return into;
+  }
+  (spec?.children ?? []).forEach((childSpec, index) =>
+    pairInstances(node?.children?.[index], childSpec, into)
+  );
+  return into;
+}
 
 // =============================================================================
 // Volgorde: componenten zonder variables
@@ -426,6 +468,44 @@ check(
 );
 
 // =============================================================================
+// Volgorde: een samenstelling zonder zijn doelcomponenten
+// =============================================================================
+
+// Een set met instances van een andere set kan pas als die andere er staat.
+// Doorgaan zou een nagebouwde kopie opleveren die niet meebeweegt, en dat zie
+// je aan de set niet. De plugin moet dus weigeren, met een melding die zegt
+// wat er eerst moet, en vóórdat er iets op de pagina is gezet.
+const composed = componentFiles
+  .map((file) => ({ file, payload: read(`packages/figma-sync/dist/${file}`) }))
+  .find(({ payload }) => (payload.componentSet.dependsOn ?? []).length);
+
+check(
+  'er is minstens één set met instances van een andere set',
+  Boolean(composed)
+);
+
+if (composed) {
+  const pagesBefore = state.root.children.length;
+  let refusal = null;
+  try {
+    await importComponentSet(composed.payload, log);
+  } catch (error) {
+    refusal = error;
+  }
+  const firstTarget = composed.payload.componentSet.dependsOn[0];
+  check(
+    `${composed.file} wordt geweigerd zolang zijn doelsets ontbreken`,
+    refusal?.message.includes(firstTarget.name) &&
+      refusal.message.includes(firstTarget.page),
+    refusal ? refusal.message.slice(0, 120) : 'niet geweigerd'
+  );
+  check(
+    'bij die weigering is er niets op een pagina gezet',
+    state.root.children.length === pagesBefore
+  );
+}
+
+// =============================================================================
 // Componenten
 // =============================================================================
 
@@ -462,6 +542,14 @@ for (const file of componentFiles) {
   const idsAfterFirst = new Map(
     (firstSet?.children ?? []).map((variant) => [variant.name, variant.id])
   );
+  // De geneste instances van de eerste import. Een tweede import hoort ze te
+  // hergebruiken: daar hangen de overrides aan die een geplaatste instance van
+  // deze set erft (zie issue #388, bij de iconen).
+  const nestedAfterFirst = (firstSet?.children ?? []).map((variant, index) => {
+    const spec = payload.componentSet.components[index]?.node;
+    const root = spec?.type === 'FRAME' ? variant : variant?.children?.[0];
+    return pairInstances(root, spec).map(({ node }) => node?.id);
+  });
 
   const imported = await importComponentSet(payload, log);
 
@@ -745,8 +833,9 @@ for (const file of componentFiles) {
   const extraLayers = [];
   const checkChildCount = (node, spec) => {
     // Een VECTOR wordt in Figma een instance met `Group > Shape` erin of een
-    // ingebakken SVG; die kinderen staan niet in de spec.
-    if (!spec || spec.type === 'VECTOR') return;
+    // ingebakken SVG; die kinderen staan niet in de spec. Een INSTANCE heeft
+    // de lagen van zijn eigen component.
+    if (!spec || spec.type === 'VECTOR' || spec.type === 'INSTANCE') return;
     if (node && node.children.length !== (spec.children ?? []).length) {
       extraLayers.push(
         `${spec.name ?? spec.type}: ${node.children.length} lagen i.p.v. ${(spec.children ?? []).length}`
@@ -789,6 +878,102 @@ for (const file of componentFiles) {
       ? `${missingMinimums.length}x, o.a. ${missingMinimums[0]}`
       : ''
   );
+
+  // ---------------------------------------------------------------------------
+  // Geneste componenten
+  // ---------------------------------------------------------------------------
+
+  const pairs = payload.componentSet.components.flatMap((component, index) =>
+    pairInstances(built(index), component.node).map((pair) => ({
+      ...pair,
+      variantIndex: index,
+    }))
+  );
+  if (pairs.length) {
+    // Een instance van de juiste variant, in de juiste set. Een gemeten laag
+    // op die plek ziet er hetzelfde uit en beweegt niet mee.
+    const wrongTarget = pairs.filter(
+      ({ node, spec }) =>
+        node?.type !== 'INSTANCE' ||
+        node.mainComponent?.name !== spec.variant ||
+        (node.mainComponent?.parent?.name !== spec.component &&
+          node.mainComponent?.name !== spec.component)
+    );
+    check(
+      'geneste componenten zijn instances van de juiste variant',
+      wrongTarget.length === 0,
+      wrongTarget.length
+        ? `${wrongTarget.length}x, o.a. ${wrongTarget[0].spec.component} (${wrongTarget[0].spec.variant}) -> ${wrongTarget[0].node?.type} ${wrongTarget[0].node?.mainComponent?.name}`
+        : `${pairs.length} instances`
+    );
+
+    const nestedNow = payload.componentSet.components.map((component, index) =>
+      pairInstances(built(index), component.node).map(({ node }) => node?.id)
+    );
+    const notReused = nestedNow.flatMap((ids, index) =>
+      ids.filter((id, position) => id !== nestedAfterFirst[index]?.[position])
+    );
+    check(
+      'de tweede import hergebruikt de geneste instances',
+      notReused.length === 0,
+      notReused.length ? `${notReused.length} opnieuw aangemaakt` : ''
+    );
+
+    const notExposed = pairs.filter(
+      ({ node, spec }) => spec.exposed && !node?.isExposedInstance
+    );
+    check(
+      'instances met eigen properties zijn exposed',
+      notExposed.length === 0,
+      notExposed.length ? `${notExposed.length} niet` : ''
+    );
+
+    // Een override moet op de geneste laag landen, met de juiste variable.
+    // Zonder deze controle telt "alle verwachte bindingen gelegd" ze wel mee,
+    // maar zegt niets over de laag waar ze terechtkwamen.
+    const wrongOverrides = [];
+    for (const { node, spec } of pairs) {
+      for (const override of spec.overrides ?? []) {
+        let layer = node;
+        for (const step of override.path) layer = layer?.children?.[step];
+        if (!layer) {
+          wrongOverrides.push(
+            `${spec.name} > ${override.path}: laag ontbreekt`
+          );
+          continue;
+        }
+        if (
+          override.layoutSizingHorizontal &&
+          layer.layoutSizingHorizontal !== override.layoutSizingHorizontal
+        ) {
+          wrongOverrides.push(
+            `${spec.name} > ${override.path}: ${layer.layoutSizingHorizontal} i.p.v. ${override.layoutSizingHorizontal}`
+          );
+        }
+        for (const [field, reference] of Object.entries(
+          override.boundVariables ?? {}
+        )) {
+          const alias =
+            field === 'fills' || field === 'strokes'
+              ? layer[field]?.[0]?.boundVariables?.color
+              : layer.boundVariables?.[field];
+          const variable = alias && byId.get(alias.id);
+          if (variable?.name !== reference.name) {
+            wrongOverrides.push(
+              `${spec.name} > ${override.path}.${field} -> ${variable?.name ?? 'niets'} (verwacht ${reference.name})`
+            );
+          }
+        }
+      }
+    }
+    check(
+      'overrides landen op de geneste laag, met de juiste variable',
+      wrongOverrides.length === 0,
+      wrongOverrides.length
+        ? `${wrongOverrides.length}x, o.a. ${wrongOverrides[0]}`
+        : ''
+    );
+  }
 
   check(
     'de component set heet naar de CSS-klasse',
@@ -1023,6 +1208,55 @@ for (const file of componentFiles) {
     'iconen dragen hun eigen naam',
     unnamedIcons.length === 0,
     unnamedIcons.length ? `${unnamedIcons.length} zonder data-icon` : ''
+  );
+}
+
+// =============================================================================
+// Een doelset opnieuw importeren
+// =============================================================================
+
+// Een Heading-set die opnieuw wordt geïmporteerd mag de instances ervan in een
+// HeadingGroup niet loslaten. Dat gaat goed zolang de varianten van de
+// doelset hun node-id houden (zie "Hoe een component set wordt bijgewerkt"),
+// en dat is precies wat hier vastligt: zonder dit zou een import van
+// heading.json elke HeadingGroup stil laten terugvallen op een losse kopie.
+if (composed) {
+  const target = composed.payload.componentSet.dependsOn[0];
+  const targetFile = componentFiles.find(
+    (file) =>
+      read(`packages/figma-sync/dist/${file}`).componentSet.name === target.name
+  );
+  const hostPage = state.root.children.find(
+    (page) => page.name === composed.payload.componentSet.page
+  );
+  const host = hostPage?.children.find(
+    (node) => node.name === composed.payload.componentSet.name
+  );
+  const attached = () => {
+    const found = [];
+    const walk = (node) => {
+      if (node.type === 'INSTANCE' && node.mainComponent) {
+        const main = node.mainComponent;
+        if (main.parent?.name === target.name || main.name === target.name) {
+          found.push(main);
+        }
+        return;
+      }
+      for (const child of node.children ?? []) walk(child);
+    };
+    walk(host ?? { children: [] });
+    return found;
+  };
+
+  const before = attached();
+  await importComponentSet(read(`packages/figma-sync/dist/${targetFile}`), log);
+  const after = attached();
+  check(
+    `na een nieuwe import van ${targetFile} hangen de instances in ${composed.file} nog aan die set`,
+    before.length > 0 &&
+      after.length === before.length &&
+      after.every((main) => main.parent !== null),
+    `${after.length} instances`
   );
 }
 

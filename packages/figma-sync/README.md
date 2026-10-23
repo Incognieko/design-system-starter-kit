@@ -687,6 +687,99 @@ in de iconset en niet in de componenten die hem tonen.
 Een SVG die géén icoon uit die set is (de cirkel van Spinner) heeft geen
 `data-icon` en krijgt zijn laagnaam uit zijn eigen klasse.
 
+### Geneste componenten worden instances
+
+Een CheckboxOption bevat een Checkbox, een Alert een Heading en een Paragraph,
+een ModalDialog een Button. Zolang die subbomen opnieuw gemeten en nagebouwd
+worden, kunnen ze stil uit elkaar lopen met het component dat ze voorstellen:
+bij Checkbox gebeurde dat al met een overgetypt vinkje. Als instance volgt de
+laag zijn set, en werkt een wijziging aan Heading overal door. Het patroon is
+hetzelfde als bij de iconen, maar dan voor elke set uit de bibliotheek, en op
+elke diepte: Checkbox in CheckboxOption in CheckboxGroup.
+
+`src/instances.js` doet dat in drie stappen.
+
+**1. Herkennen.** Een element waarvan een klasse precies een `cssBlock` uit
+`components-html/manifest.json` is, ís dat component: `dsn-checkbox` binnen
+een `dsn-checkbox-option`. Dat is geen raden op klassenaam.
+`dsn-checkbox__control` is een BEM-element en geen blok, en matcht dus niet;
+een `dsn-card__image-placeholder` blijft daarom ook een gemeten laag. De
+layoutcomponenten en `dsn-icon` doen niet mee: de eerste hebben bewust geen
+set, en een icoon heeft al zijn eigen route via `data-icon`.
+
+Wat niet in de klassen te zien is, wijst de matrix aan:
+
+| Attribuut                                   | Wanneer                                                                 |
+| ------------------------------------------- | ----------------------------------------------------------------------- |
+| `data-figma-instance="dsn-heading"`         | het component is niet aan een eigen element te herkennen (HeadingGroup) |
+| `data-figma-variant="appearance=heading-3"` | de variant is uit de meting niet eenduidig te bepalen                   |
+| `data-figma-instance="none"`                | dit element is bewust een eigen laag en geen instance                   |
+
+HeadingGroup is het voorbeeld van de eerste. De Heading is daar de root zelf
+(`<h2 class="dsn-heading … dsn-heading-group">`) en de tekst hangt direct in
+die `<h2>`; er is geen kind met `dsn-heading` om te herkennen. De matrix zet
+daarom `data-figma-instance` op een span om de tekst.
+
+**2. De variant kiezen.** Uit de klassen is die niet altijd af te lezen: of een
+Checkbox aangevinkt is zit in het `<input>`, en hover is een pseudo-toestand.
+De subboom wordt daarom gewoon gemeten, en daarna vergeleken met elke variant
+van de doelset. De variant met de minste verschillen wint. Twee varianten die
+even dichtbij zitten maar wel van elkaar verschillen laten de build stoppen:
+dat is een gok, en die hoort niet stil in een library te belanden. Een
+subboom met een andere opbouw dan elke variant (een ander aantal lagen,
+een ander icoon) stopt de build ook, want daar is geen override op te leggen.
+
+Dat vergelijken is de reden dat de build nu eerst álle matrices meet en pas
+daarna omzet: een samenstelling heeft de spec van zijn doelsets nodig, en
+welke dat zijn blijkt pas uit de meting.
+
+**3. Overrides.** Wat na die keuze nog verschilt, gaat als override mee: per
+laag, met het pad zoals het in Figma staat. Een component dat tot één
+tekstlaag inklapt (Heading, Paragraph) krijgt in de plugin een frame om zich
+heen, dus de tekst zit dan op `[0]` binnen de instance. De bindingen in die
+overrides zijn tijdens het meten al geverifieerd, dus de eigenschap uit
+DR-2026-06 blijft staan: een misrekening kan een binding missen, maar geen
+verkeerde leggen.
+
+De maat en de plek van de instance komen uit de host. Staat een Heading in de
+host op FILL, dan krijgt zijn tekstlaag ook een FILL-override, anders breekt
+de tekst niet af.
+
+Een instance van een set met eigen component properties is **exposed**: de
+`label` van de Heading staat dan in het paneel van de HeadingGroup. De host
+declareert die properties dus niet opnieuw.
+
+#### Volgorde
+
+Elke spec met instances draagt `componentSet.dependsOn`: de sets die er al
+moeten staan, met hun pagina. De build zet de matrices zelf in die volgorde.
+De plugin weigert een set waarvan een doelset nog niet in het bestand staat,
+en de UI sorteert bestanden die tegelijk binnenkomen op dezelfde volgorde.
+
+Een gefilterde build (`build-components heading-group`) haalt de doelsets uit
+een eerdere build in `dist/`. Ontbreekt er één, dan bouw die matrix eerst.
+
+#### Per matrix aan te zetten
+
+Een matrix gaat pas op instances met `instances: true`. Zolang dat er niet
+staat, blijft alles gemeten en meldt de build wat er een instance zou kunnen
+worden:
+
+```
+   CheckboxGroup  …
+                  nog gemeten, kan instance worden: dsn-checkbox, dsn-checkbox-option, dsn-option-label
+```
+
+Dat staat ook in de spec, als `instanceCandidates`. Zo kan het patroon per
+component aan, en is in Figma te bevestigen dat het werkt voordat de hele
+bibliotheek omgaat. HeadingGroup is de eerste; Alert, Note en de keten van
+Checkbox en Radio volgen.
+
+Zet een keten **van onderaf** aan. In een CheckboxGroup op instances wordt ook
+de Checkbox binnen elke optie een instance, en dan moet de CheckboxOption-set
+zelf ook al instances van Checkbox bevatten: anders verschilt de opbouw en
+stopt de build.
+
 ## Hoe de icongeneratie werkt
 
 `build-icons.js` is een ander type generator dan `build-components.js`. Daar
@@ -767,6 +860,8 @@ dsn-heading-group"`, dus zonder override zouden Heading en HeadingGroup
 - **`optional: true`** op een component property laat hem alleen hangen in de
   varianten die de laag hebben. Zonder is een property die niet in elke variant
   een laag heeft een fout.
+- **`instances: true`** maakt van geneste componenten instances in plaats van
+  gemeten lagen; zie "Geneste componenten worden instances".
 - **`warnings`** zet een vaste waarschuwing in de spec, voor een beperking die
   de generator zelf niet kán zien. `::marker` is het voorbeeld: de bolletjes van
   een UnorderedList zijn een pseudo-element en dus geen DOM-node, dus er valt

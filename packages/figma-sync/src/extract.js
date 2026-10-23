@@ -248,6 +248,12 @@ function domWalker([properties, hiddenClass]) {
       // dit attribuut; zonder markering in de markup zou de plugin de laag op
       // klassenaam moeten raden, en dat breekt zodra de markup verandert.
       slot: element.dataset.figmaSlot || null,
+      // Een subboom die een ander component ís. Normaal herkent de generator
+      // dat zelf aan de blokklasse (`dsn-checkbox` in een CheckboxOption);
+      // deze twee attributen zijn er voor wat daar niet uit te lezen is. Zie
+      // "Geneste componenten" in de README.
+      instance: element.dataset.figmaInstance || null,
+      instanceVariant: element.dataset.figmaVariant || null,
       children: [],
     };
 
