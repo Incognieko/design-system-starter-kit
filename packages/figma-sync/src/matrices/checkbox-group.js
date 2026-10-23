@@ -19,6 +19,13 @@ export default {
 
   instances: true,
 
+  // Een CheckboxOption is in CSS `width: fit-content`: hij krimpt om zijn tekst
+  // en breekt pas af bij de rand van de groep. Figma kent geen maximale
+  // breedte die meebeweegt met de ouder, dus de opties vullen de groep. Dat
+  // ziet er hetzelfde uit (het label heeft geen achtergrond) en een lang label
+  // breekt dan op de breedte van de groep af, net als in de browser.
+  fillRootChildren: true,
+
   fonts: [
     'https://fonts.googleapis.com/css2?family=Fira+Sans:wght@400;700&display=swap',
   ],

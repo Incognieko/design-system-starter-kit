@@ -900,6 +900,13 @@ function rotationFrom(transform, warnings, label) {
   return Math.round(degrees * 100) / 100;
 }
 
+/** Zet een declaratie een maat, of krimpt hij om de inhoud? */
+const INTRINSIC_SIZES = /^\s*(fit-content|max-content|min-content|auto)\s*$/;
+function declaresSize(source) {
+  if (!source) return false;
+  return !INTRINSIC_SIZES.test(String(source.value ?? ''));
+}
+
 function convertElement(
   node,
   wideNode,
@@ -1127,11 +1134,16 @@ function convertElement(
   // alleen absoluut om zich buiten beeld te zetten; zijn maat komt gewoon uit
   // zijn tekst.
   const absolute = styles.position === 'absolute' && !root;
-  const fixedWidth = absolute || Boolean(node.tokens?.width);
+  // `fit-content`, `max-content` en `min-content` zijn geen maat maar een
+  // instructie om om de inhoud te krimpen, dus het tegendeel van vast. Een
+  // CheckboxOption is `width: fit-content`, en kwam daardoor op een vaste
+  // 69px in een CheckboxGroup te staan, waar een lang label dan in een smalle
+  // kolom afbrak.
+  const fixedWidth = absolute || declaresSize(node.tokens?.width);
   // Een textarea haalt zijn hoogte uit `rows`, niet uit zijn inhoud: met één
   // regel tekst erin zou HUG hem laten krimpen.
   const fixedHeight =
-    absolute || Boolean(node.tokens?.height) || node.tag === 'textarea';
+    absolute || declaresSize(node.tokens?.height) || node.tag === 'textarea';
 
   // Krimpt om zijn inhoud: `inline-block` net als `inline-flex`, en een
   // absoluut gepositioneerde root zonder eigen breedte ook. Voor die laatste

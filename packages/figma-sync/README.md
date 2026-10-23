@@ -474,6 +474,14 @@ Een node blijft daarom FIXED wanneer:
   padding: een `<input>`, een lege DotBadge, de wrapper van Popover met alleen
   een absoluut kind.
 
+`fit-content`, `max-content`, `min-content` en `auto` tellen daarbij niet als
+maat: dat is een instructie om om de inhoud te krimpen, het tegendeel van
+vast. Een CheckboxOption is `width: fit-content` en kwam daardoor op een vaste
+69px in een CheckboxGroup te staan. In de groep vult hij nu de breedte
+(`fillRootChildren`), want Figma kent geen maximale breedte die met de ouder
+meebeweegt; zo breekt een lang label af op de breedte van de groep, net als in
+de browser.
+
 `width` en `height` zijn daarvoor toegevoegd aan de gevolgde properties. Niet
 om te binden, maar omdat de computed waarde altijd een pixelgetal is: daaruit
 valt niet af te lezen of de maat van een declaratie komt of van de inhoud. Uit
