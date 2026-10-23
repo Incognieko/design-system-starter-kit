@@ -527,9 +527,9 @@ goed, op één geplaatste instance) is de controle daarop.
 - **Een droogloop.** Er is nog geen stand waarin de plugin eerst toont wat er
   zou veranderen voordat hij het doet.
 - **Geneste componenten overal.** Het mechanisme staat (zie "Geneste
-  componenten"), maar alleen HeadingGroup, Alert, Note, CheckboxOption en
-  CheckboxGroup staan er al op. De keten van Radio, FormField en ModalDialog
-  volgen per matrix met `instances: true`.
+  componenten"), maar alleen HeadingGroup, Alert, Note en de ketens van
+  Checkbox en Radio staan er al op. FormField en ModalDialog volgen per matrix
+  met `instances: true`.
 - **Effect styles.** Box shadows staan in het skip-report en moeten nog
   Figma-effectstijlen worden.
 - **Booleans die tokens veranderen.** `iconOnly`, `loading` en `fullWidth` bij

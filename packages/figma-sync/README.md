@@ -477,8 +477,9 @@ Een node blijft daarom FIXED wanneer:
 `fit-content`, `max-content`, `min-content` en `auto` tellen daarbij niet als
 maat: dat is een instructie om om de inhoud te krimpen, het tegendeel van
 vast. Een CheckboxOption is `width: fit-content` en kwam daardoor op een vaste
-69px in een CheckboxGroup te staan. In de groep vult hij nu de breedte
-(`fillRootChildren`), want Figma kent geen maximale breedte die met de ouder
+69px in een CheckboxGroup te staan. RadioOption is hetzelfde. In de groep
+vult een optie nu de breedte (`fillRootChildren` op CheckboxGroup en
+RadioGroup), want Figma kent geen maximale breedte die met de ouder
 meebeweegt; zo breekt een lang label af op de breedte van de groep, net als in
 de browser.
 
@@ -780,8 +781,8 @@ worden:
 
 Dat staat ook in de spec, als `instanceCandidates`. Zo kan het patroon per
 component aan, en is in Figma te bevestigen dat het werkt voordat de hele
-bibliotheek omgaat. HeadingGroup, Alert, Note, CheckboxOption en
-CheckboxGroup staan erop; de keten van Radio, FormField en ModalDialog volgen.
+bibliotheek omgaat. HeadingGroup, Alert, Note en de ketens van Checkbox en
+Radio (Option en Group) staan erop; FormField en ModalDialog volgen.
 
 Bij Alert en Note komt er geen enkele kleur- of typografie-override mee, en
 dat klopt: `heading.css` en `paragraph.css` zetten hun kleur met hun eigen

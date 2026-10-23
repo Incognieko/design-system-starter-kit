@@ -10,6 +10,13 @@ import { TEKST } from '../text.js';
 export default {
   component: 'RadioGroup',
 
+  instances: true,
+
+  // Een RadioOption is in CSS `width: fit-content`, net als een
+  // CheckboxOption: hij krimpt om zijn tekst en breekt pas af bij de rand van
+  // de groep. In Figma vullen de opties de groep, zie CheckboxGroup.
+  fillRootChildren: true,
+
   fonts: [
     'https://fonts.googleapis.com/css2?family=Fira+Sans:wght@400;700&display=swap',
   ],
