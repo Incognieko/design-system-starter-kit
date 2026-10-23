@@ -475,11 +475,14 @@ iconimport houdt de node-ids gelijk in plaats van te vervangen.
 
 De componenten gaan in afhankelijkheidsvolgorde, zoals een designer ze ook
 moet importeren. Daarvóór staat een controle dat een samenstelling geweigerd
-wordt zolang zijn doelsets ontbreken, en erna een controle dat een nieuwe
-import van een doelset de instances in de samenstelling laat staan. Per set
-met instances kijkt de test of elke instance aan de juiste variant hangt, bij
-de tweede import hergebruikt is, exposed is waar dat hoort, en of elke
-override met de juiste variable op de geneste laag landt.
+wordt zolang zijn doelsets ontbreken. Per set met instances kijkt de test of
+elke instance aan de juiste variant hangt, bij de tweede import hergebruikt
+is, exposed is waar dat hoort, en of elke override met de juiste variable op
+de geneste laag landt. Aan het eind wordt elke doelset nog een keer
+geïmporteerd, en moeten de instances in elke samenstelling daarna nog aan die
+set hangen mét hun overrides op de geneste lagen. Dat laatste staat erin sinds
+het in Figma misging: de tekst in een HeadingGroup viel na een nieuwe import
+van `heading.json` terug van FILL naar HUG.
 
 Elk component wordt **twee keer** geïmporteerd, en alle controles kijken naar
 het resultaat van de tweede. Een import die alleen op een leeg bestand klopt is
@@ -520,9 +523,9 @@ goed, op één geplaatste instance) is de controle daarop.
 - **Een droogloop.** Er is nog geen stand waarin de plugin eerst toont wat er
   zou veranderen voordat hij het doet.
 - **Geneste componenten overal.** Het mechanisme staat (zie "Geneste
-  componenten"), maar alleen HeadingGroup staat er al op. Alert, Note, de
+  componenten"), maar alleen HeadingGroup, Alert en Note staan er al op. De
   keten van Checkbox en Radio, FormField en ModalDialog volgen per matrix met
-  `instances: true`, nadat het in Figma bevestigd is.
+  `instances: true`.
 - **Effect styles.** Box shadows staan in het skip-report en moeten nog
   Figma-effectstijlen worden.
 - **Booleans die tokens veranderen.** `iconOnly`, `loading` en `fullWidth` bij

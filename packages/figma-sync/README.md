@@ -772,8 +772,13 @@ worden:
 
 Dat staat ook in de spec, als `instanceCandidates`. Zo kan het patroon per
 component aan, en is in Figma te bevestigen dat het werkt voordat de hele
-bibliotheek omgaat. HeadingGroup is de eerste; Alert, Note en de keten van
-Checkbox en Radio volgen.
+bibliotheek omgaat. HeadingGroup, Alert en Note staan erop; de keten van
+Checkbox en Radio, FormField en ModalDialog volgen.
+
+Bij Alert en Note komt er geen enkele kleur- of typografie-override mee, en
+dat klopt: `heading.css` en `paragraph.css` zetten hun kleur met hun eigen
+tokens, en Alert en Note overschrijven die niet. Alleen de FILL op de
+tekstlaag gaat mee, zodat de tekst in de cel afbreekt.
 
 Zet een keten **van onderaf** aan. In een CheckboxGroup op instances wordt ook
 de Checkbox binnen elke optie een instance, en dan moet de CheckboxOption-set

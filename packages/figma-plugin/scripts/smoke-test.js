@@ -475,9 +475,10 @@ check(
 // Doorgaan zou een nagebouwde kopie opleveren die niet meebeweegt, en dat zie
 // je aan de set niet. De plugin moet dus weigeren, met een melding die zegt
 // wat er eerst moet, en vóórdat er iets op de pagina is gezet.
-const composed = componentFiles
+const allComposed = componentFiles
   .map((file) => ({ file, payload: read(`packages/figma-sync/dist/${file}`) }))
-  .find(({ payload }) => (payload.componentSet.dependsOn ?? []).length);
+  .filter(({ payload }) => (payload.componentSet.dependsOn ?? []).length);
+const composed = allComposed[0];
 
 check(
   'er is minstens één set met instances van een andere set',
@@ -1220,7 +1221,7 @@ for (const file of componentFiles) {
 // doelset hun node-id houden (zie "Hoe een component set wordt bijgewerkt"),
 // en dat is precies wat hier vastligt: zonder dit zou een import van
 // heading.json elke HeadingGroup stil laten terugvallen op een losse kopie.
-if (composed) {
+for (const composed of allComposed) {
   const hostPage = state.root.children.find(
     (page) => page.name === composed.payload.componentSet.page
   );

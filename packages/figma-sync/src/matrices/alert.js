@@ -7,6 +7,10 @@
  *
  * De `dsn-visually-hidden` variant-labels in de heading worden door de
  * extractor overgeslagen: die hebben in Figma geen tegenhanger.
+ *
+ * De kop en de tekst zijn instances van `dsn-heading` en `dsn-paragraph`. De
+ * generator herkent ze aan hun klasse en kiest de variant zelf; wat de Alert
+ * eraan verandert gaat als override mee.
  */
 
 import { icon as renderIcon } from '../icons.js';
@@ -29,6 +33,8 @@ const LABELS = {
 
 export default {
   component: 'Alert',
+
+  instances: true,
 
   fonts: [
     'https://fonts.googleapis.com/css2?family=Fira+Sans:wght@400;700&display=swap',

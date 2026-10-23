@@ -8,6 +8,9 @@
  * De `no-heading`-as staat er omdat die niet alleen een laag weglaat: zonder
  * kop schuift de inhoud naar rij 1 en verandert de rijverdeling van het grid.
  * Dat is een gemeten verschil en hoort dus op een as, niet op een boolean.
+ *
+ * De kop en de tekst zijn instances van `dsn-heading` en `dsn-paragraph`, net
+ * als bij Alert.
  */
 
 import { icon } from '../icons.js';
@@ -33,6 +36,8 @@ const LABELS = {
 
 export default {
   component: 'Note',
+
+  instances: true,
 
   fonts: [
     'https://fonts.googleapis.com/css2?family=Fira+Sans:wght@400;700&display=swap',
