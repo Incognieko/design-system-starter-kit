@@ -375,11 +375,11 @@ function collectSizingDifferences(measured, target, nodePath, into) {
 /**
  * Hoe ver een variant van de meting af zit.
  *
- * Een andere waarde telt zwaarder dan dezelfde waarde aan een ander token. De
- * kop van een ModalDialog heeft de maat van `heading-4` maar eigen tokens
- * (`modal-dialog-heading/*`); zou een tokenverschil even zwaar tellen, dan zat
- * elke Heading-variant even ver weg en was er niets te kiezen. Het token gaat
- * wel als override mee, zodat de laag aan het token van de host blijft hangen.
+ * Een andere waarde telt zwaarder dan dezelfde waarde aan een ander token. Een
+ * kop met eigen tokens die op de maat van `heading-4` uitkomen zou anders even
+ * ver van elke Heading-variant af zitten, en dan is er niets te kiezen. Het
+ * token gaat wel als override mee, zodat de laag aan het token van de host
+ * blijft hangen.
  */
 function score({ values, tokens }) {
   return values + tokens / 1000;

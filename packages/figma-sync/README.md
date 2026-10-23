@@ -499,7 +499,8 @@ groeien. Naar `display` kijken is daar niet genoeg: de browser rekent
 
 Een kind met `flex-grow` in een rij krijgt FILL: het neemt de ruimte die over
 is, zoals de kop in de header van ModalDialog, Drawer en Popover, en de link in
-MenuLink.
+MenuLink. Zonder dit schoof de sluitknop in de header mee met de lengte van de
+titel.
 
 Tekst aan het eind van een rij krijgt FILL. In CSS is tekst in een flex-rij een
 item dat mag krimpen en dan afbreekt; in Figma breekt tekst alleen af als de
@@ -757,13 +758,12 @@ component zelf op HUG meet, dan hugt de instance. De knoppen in de footer van
 ModalDialog stonden anders op een vaste 129px, gemeten mét de chevrons die in
 Figma via `showIconStart` en `showIconEnd` uit staan.
 
-**Een ander token weegt lichter dan een andere waarde.** De kop van een
-ModalDialog is geen `dsn-heading` maar `dsn-modal-dialog-heading`, met eigen
-tokens die op dezelfde maat uitkomen als `heading-4`. De matrix wijst hem aan
-met `data-figma-instance="dsn-heading"`, en bij het kiezen telt een verschil
-in waarde zwaarder dan dezelfde waarde aan een ander token. Zo wint
-`heading-4`, en gaan de tokens van de dialoog (`modal-dialog/heading/*`) als
-override mee: de laag blijft aan het token van de host hangen.
+**Een ander token weegt lichter dan een andere waarde.** Bij het kiezen van
+een variant telt een verschil in waarde zwaarder dan dezelfde waarde aan een
+ander token. Een kop met eigen tokens die op de maat van `heading-4`
+uitkomen, hoort bij `heading-4`, niet bij een variant die net zo veel tokens
+deelt maar een andere maat heeft. De eigen tokens gaan dan als override mee,
+zodat de laag aan het token van de host blijft hangen.
 
 **Wat (nog) geen variant heeft, blijft gemeten.** De sluitknop van ModalDialog
 is icon-only, en daar heeft de Button-set geen variant voor (issue #323). Hij
