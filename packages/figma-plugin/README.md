@@ -273,14 +273,32 @@ Een doelset opnieuw importeren laat de instances ervan staan. Dat volgt uit
 hoe een set wordt bijgewerkt: de varianten houden hun node-id, en daar hangen
 de instances aan.
 
+**De overrides erop blijven alleen staan als de laag eronder blijft staan.**
+Een override hangt niet aan de instance maar aan een laag in het component, en
+Figma zoekt hem terug via die laag. In Figma Desktop gemeten: na een nieuwe
+import van `heading.json` bleef elke Heading in de HeadingGroup aan zijn
+variant hangen, maar stond de tekst weer op HUG in plaats van FILL. De
+tekstlaag in de Heading-variant was vervangen door een nieuwe, en de override
+hing aan de oude.
+
+Een component dat in zijn geheel uit één tekstlaag bestaat (Heading,
+Paragraph, PreHeading) houdt daarom bij een tweede import zijn tekstlaag; die
+wordt bijgewerkt in plaats van vervangen. Dat kan daar en niet bij een
+willekeurige variant, omdat de identiteit eenduidig is: er is één laag, en die
+hoort bij de ene tekstlaag in de spec. Voor een doelset met meer lagen (een
+Checkbox in een CheckboxOption) is dit nog open: daar gaan overrides op de
+geneste lagen bij een nieuwe import van die doelset nog verloren.
+
 **Nog in Figma zelf te bevestigen.** De mock kan deze drie niet beslissen:
 
 - of een tekstlaag binnen een instance op FILL kan, zodat een Heading in een
   smalle host afbreekt in plaats van uit te lopen;
-- of `resetOverrides()` op een hergebruikte instance de overrides van een
-  geplaatste instance van de host laat staan (bij de iconen ging precies dat
-  mis, issue #388);
-- of een binding op een override een tweede import overleeft.
+- of een binding op een override een tweede import overleeft, zodra er een
+  set is met een override die een kleur of maat aan een variable hangt.
+
+Bevestigd voor HeadingGroup: een tekstlaag binnen een instance kan op FILL en
+breekt dan af, de label van een exposed instance staat in het paneel, en een
+tweede import van de host laat een geplaatste instance en zijn tekst staan.
 
 ### Alles wat niet lukt is een fout, geen stilte
 

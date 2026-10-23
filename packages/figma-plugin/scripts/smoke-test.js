@@ -1221,43 +1221,72 @@ for (const file of componentFiles) {
 // en dat is precies wat hier vastligt: zonder dit zou een import van
 // heading.json elke HeadingGroup stil laten terugvallen op een losse kopie.
 if (composed) {
-  const target = composed.payload.componentSet.dependsOn[0];
-  const targetFile = componentFiles.find(
-    (file) =>
-      read(`packages/figma-sync/dist/${file}`).componentSet.name === target.name
-  );
   const hostPage = state.root.children.find(
     (page) => page.name === composed.payload.componentSet.page
   );
   const host = hostPage?.children.find(
     (node) => node.name === composed.payload.componentSet.name
   );
-  const attached = () => {
-    const found = [];
-    const walk = (node) => {
-      if (node.type === 'INSTANCE' && node.mainComponent) {
-        const main = node.mainComponent;
-        if (main.parent?.name === target.name || main.name === target.name) {
-          found.push(main);
-        }
-        return;
-      }
-      for (const child of node.children ?? []) walk(child);
-    };
-    walk(host ?? { children: [] });
-    return found;
-  };
+  const pairs = () =>
+    composed.payload.componentSet.components.flatMap((component, index) =>
+      pairInstances(host?.children[index], component.node)
+    );
 
-  const before = attached();
-  await importComponentSet(read(`packages/figma-sync/dist/${targetFile}`), log);
-  const after = attached();
-  check(
-    `na een nieuwe import van ${targetFile} hangen de instances in ${composed.file} nog aan die set`,
-    before.length > 0 &&
-      after.length === before.length &&
-      after.every((main) => main.parent !== null),
-    `${after.length} instances`
-  );
+  for (const target of composed.payload.componentSet.dependsOn) {
+    const targetFile = componentFiles.find(
+      (file) =>
+        read(`packages/figma-sync/dist/${file}`).componentSet.name ===
+        target.name
+    );
+    const ofTarget = () =>
+      pairs().filter(({ spec }) => spec.component === target.name);
+
+    const before = ofTarget().map(({ node }) => node?.mainComponent);
+    await importComponentSet(
+      read(`packages/figma-sync/dist/${targetFile}`),
+      log
+    );
+    const after = ofTarget();
+
+    check(
+      `na een nieuwe import van ${targetFile} hangen de instances in ${composed.file} nog aan die set`,
+      before.length > 0 &&
+        after.length === before.length &&
+        after.every(
+          ({ node }, index) =>
+            node?.mainComponent === before[index] &&
+            node.mainComponent.parent !== null
+        ),
+      `${after.length} instances`
+    );
+
+    // De overrides op de geneste lagen horen dat ook te overleven. Gemeten in
+    // Figma Desktop: na een nieuwe import van heading.json stond de tekst in
+    // de HeadingGroup op HUG in plaats van FILL. De tekstlaag in de Heading-
+    // variant werd vervangen, en de override hing aan de oude. `instances`
+    // lezen laat de mock de spiegels opnieuw afleiden, zoals Figma dat doet.
+    const lost = [];
+    for (const { node, spec } of after) {
+      void node?.mainComponent?.instances;
+      for (const override of spec.overrides ?? []) {
+        let layer = node;
+        for (const step of override.path) layer = layer?.children?.[step];
+        if (
+          override.layoutSizingHorizontal &&
+          layer?.layoutSizingHorizontal !== override.layoutSizingHorizontal
+        ) {
+          lost.push(
+            `${spec.variant} > ${override.path}: ${layer?.layoutSizingHorizontal} i.p.v. ${override.layoutSizingHorizontal}`
+          );
+        }
+      }
+    }
+    check(
+      `na een nieuwe import van ${targetFile} houden de geneste lagen in ${composed.file} hun overrides`,
+      lost.length === 0,
+      lost.length ? `${lost.length}x, o.a. ${lost[0]}` : ''
+    );
+  }
 }
 
 // =============================================================================

@@ -461,8 +461,12 @@ function buildNode(spec, parent, context) {
   const { fonts, log } = context;
 
   if (spec.type === 'TEXT') {
-    const text = figma.createText();
-    parent.appendChild(text);
+    // Een component dat uit één tekstlaag bestaat houdt die laag bij een
+    // tweede import; zie `resetVariant`.
+    const reused = context.reusableText;
+    context.reusableText = null;
+    const text = reused ?? figma.createText();
+    if (!reused) parent.appendChild(text);
 
     const key = `${spec.fontFamily}|${fontFor(spec).style}`;
     text.fontName = fonts.get(key) ?? FALLBACK_FONT;
@@ -636,8 +640,27 @@ function clearBoundVariables(node) {
  * Anders houdt een variant een rand, een radius of een gap uit de vorige
  * import die in de nieuwe spec niet meer voorkomt.
  */
-async function resetVariant(component, context) {
+async function resetVariant(component, context, { keepText = false } = {}) {
   context.reusable = new Map();
+  context.reusableText = null;
+
+  // Een component dat in zijn geheel tot één tekstlaag inklapt (Heading,
+  // Paragraph, PreHeading) houdt die laag, in plaats van hem weg te gooien en
+  // opnieuw te maken. Elke instance ervan in een andere set (een Heading in
+  // een HeadingGroup) heeft overrides op precies die laag, zoals FILL zodat de
+  // tekst afbreekt. Figma zoekt zo'n override terug via de laag, en een nieuwe
+  // laag heeft hem niet: gemeten in Figma Desktop, waar de tekst in de
+  // HeadingGroup na een nieuwe import van heading.json op HUG terugviel.
+  //
+  // Dat kan hier wel en bij een gewone variant niet, omdat de identiteit
+  // eenduidig is: er is één laag, en die hoort bij de ene tekstlaag in de spec.
+  if (keepText) {
+    const text = component.children.find((child) => child.type === 'TEXT');
+    if (text) {
+      clearBoundVariables(text);
+      context.reusableText = text;
+    }
+  }
 
   // Ook de instances die dieper zitten, in een frame binnen de variant: een
   // Paragraph in de content van een Alert, een icoon in de control van een
@@ -667,7 +690,7 @@ async function resetVariant(component, context) {
   }
 
   for (const child of [...component.children]) {
-    if (!pooled.has(child)) child.remove();
+    if (!pooled.has(child) && child !== context.reusableText) child.remove();
   }
 
   clearBoundVariables(component);
@@ -1349,13 +1372,16 @@ export async function importComponentSet(payload, log, options = {}) {
     wrapper.name = component.name;
 
     if (known) {
-      await resetVariant(wrapper, context);
+      await resetVariant(wrapper, context, {
+        keepText: component.node.type === 'TEXT',
+      });
       updated += 1;
     } else {
       // Een verse variant heeft niets om te hergebruiken, maar de pool van de
       // vorige variant mag hier niet blijven staan: dan zou een icoon uit die
       // variant in deze belanden.
       context.reusable = new Map();
+      context.reusableText = null;
       // Een nieuwe variant hangt meteen in de set als die er al is; anders op
       // de pagina, waar `combineAsVariants` hem straks ophaalt. De naam staat
       // er al op, want een set met een ongeldig genoemd kind is stuk.
