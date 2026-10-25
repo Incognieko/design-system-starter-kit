@@ -27,7 +27,7 @@ In Figma maakt de eerstvolgende import een nieuwe component set `DataList` aan. 
 
 ### figma-sync: lijsten uit list items, met bolletjes en nummers (#401, #373)
 
-UnorderedList, OrderedList en IconList bestaan in Figma nu uit 10 instances van één list item: `dsn-unordered-list-item`, `dsn-ordered-list-item` en `dsn-icon-list-item`. Elk item staat op de pagina van zijn lijst, links van de lijst. De tekst van elk item staat in het properties panel (`label`), en wie minder items nodig heeft zet er zelf een paar uit. Later vult een slot de lijst met dezelfde items (#450).
+UnorderedList, OrderedList en IconList bestaan in Figma nu uit 10 instances van één list item. Dat item heet `__item` en staat op de pagina van zijn lijst, links ervan. Door de underscore publiceert Figma het niet naar de bibliotheek: afnemers zien alleen de hele lijst. Een matrix maakt zo'n onderdeel met `partOf`. De tekst van elk item staat in het properties panel (`label`), en wie minder items nodig heeft zet er zelf een paar uit. Later vult een slot de lijst met dezelfde items (#450).
 
 De bolletjes en nummers zijn er nu ook. `::marker` is een pseudo-element en kwam daarom nooit mee; de extractor tekent het teken nu zelf als laag, met de markerkleur gebonden aan `--dsn-unordered-list-marker-color` en `--dsn-ordered-list-marker-color`. De items van UnorderedList en OrderedList hebben een `level`-as (1, 2, 3) voor de geneste weergave. Het nummer van een OrderedList-item is een TEXT-property `number`; het icoon van een IconList-item is een instance swap. TableOfContents en PageFooter krijgen er hun bolletjes door.
 

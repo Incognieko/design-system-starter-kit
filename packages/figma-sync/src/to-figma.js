@@ -1624,6 +1624,30 @@ function hugRootWidth(node, warnings, label) {
  * De klasse komt uit de DOM en niet uit de laagnaam van de root: een root die
  * tot tekst inklapt (Heading, Paragraph) heet als laag "Tekst".
  */
+/**
+ * De naam van de set zoals een designer hem in Figma ziet.
+ *
+ * Meestal de setnaam zelf. Een onderdeel dat alleen binnen zijn component
+ * gebruikt wordt (het item van een lijst) is de uitzondering: dat draagt
+ * `partOf`, en heet in Figma naar zijn BEM-element met `__` ervoor. Figma
+ * publiceert een component waarvan de naam met `_` begint niet naar de
+ * bibliotheek, dus afnemers zien alleen het hele component.
+ *
+ * `dsn-unordered-list__item` wordt zo `__item`. Op de pagina van de lijst is
+ * dat genoeg; de setnaam blijft intern de sleutel, want `__item` komt op meer
+ * pagina's voor.
+ */
+export function figmaNameFor(matrix, setName) {
+  if (!matrix.partOf) return setName;
+  const element = setName.split('__')[1];
+  if (!element) {
+    throw new Error(
+      `${matrix.component}: partOf vraagt een setName met een BEM-element (dsn-blok__element), niet "${setName}"`
+    );
+  }
+  return `__${element}`;
+}
+
 export function setNameFor(matrix, extracted) {
   const rootClass = extracted[0]?.tree.classes?.[0];
   return (
@@ -1699,8 +1723,9 @@ export function toComponentSet(
         .map(([axis, value]) => `${axis}=${value}`)
         .join(', ');
       // Een matrix zonder assen levert één component op. Dat is in Figma geen
-      // set maar een los component, en het heet naar het component zelf.
-      const label = axisLabel || setName;
+      // set maar een los component, en het heet naar het component zelf: bij
+      // een onderdeel dus `__item`, anders publiceert Figma het toch.
+      const label = axisLabel || figmaNameFor(matrix, setName);
       const pathLabel = axisLabel
         ? `${matrix.component}[${axisLabel}]`
         : matrix.component;
@@ -1757,7 +1782,11 @@ export function toComponentSet(
   const dependsOn = new Map();
   const collectTargets = (node) => {
     if (node.type === 'INSTANCE') {
-      dependsOn.set(node.component, { name: node.component, page: node.page });
+      // Op pagina én naam: `__item` staat op meer pagina's.
+      dependsOn.set(`${node.page}|${node.component}`, {
+        name: node.component,
+        page: node.page,
+      });
       return;
     }
     for (const child of node.children ?? []) collectTargets(child);
@@ -1772,12 +1801,15 @@ export function toComponentSet(
     generatedAt: new Date().toISOString(),
     componentSet: {
       // Eén pagina per component; de plugin maakt hem aan en zet de
-      // `dsn/`-pagina's daarna alfabetisch. Een onderdeel dat alleen in Figma
-      // een eigen set is (het item van een lijst) staat met `page` op de
-      // pagina van het component waar het bij hoort.
-      page: pageNameFor(matrix.page ?? matrix.component),
+      // `dsn/`-pagina's daarna alfabetisch. Een onderdeel met `partOf` (het
+      // item van een lijst) staat op de pagina van het component waar het bij
+      // hoort.
+      page: pageNameFor(matrix.partOf ?? matrix.component),
       canvas,
-      name: setName,
+      name: figmaNameFor(matrix, setName),
+      // De sleutel waarop andere matrices deze set aanwijzen, als die afwijkt
+      // van de naam in Figma.
+      ...(figmaNameFor(matrix, setName) !== setName ? { key: setName } : {}),
       // De sets die er al moeten staan voordat deze geïmporteerd kan worden:
       // de doelen van zijn instances. De plugin weigert zonder.
       ...(dependsOn.size ? { dependsOn: [...dependsOn.values()] } : {}),

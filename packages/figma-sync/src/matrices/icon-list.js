@@ -1,9 +1,10 @@
 /**
  * Variant-matrix voor IconList.
  *
- * 10 instances van `dsn-icon-list-item`. Het icoon is in het item een
- * instance swap, dus kiest een designer het per item; de `icon`-as die hier
- * eerder stond is daarmee naar het item verhuisd en deze set heeft geen assen.
+ * 10 instances van `__item` (`dsn-icon-list__item`). Het icoon is in het item
+ * een instance swap, dus kiest een designer het per item; de `icon`-as die
+ * hier eerder stond is daarmee naar het item verhuisd en deze set heeft geen
+ * assen.
  *
  * IconList tekent zijn markering met een echt `<svg>` in plaats van met
  * `::marker`, en springt niet in. Het item is het BEM-element
@@ -36,7 +37,7 @@ export default {
     const items = Array.from(
       { length: ITEM_COUNT },
       () =>
-        `<li class="dsn-icon-list__item" data-figma-instance="dsn-icon-list-item">
+        `<li class="dsn-icon-list__item" data-figma-instance="dsn-icon-list__item">
            ${icon('check', { className: 'dsn-icon-list__icon', slot: 'icon' })}
            <span data-figma-slot="label">${TEKST}</span>
          </li>`

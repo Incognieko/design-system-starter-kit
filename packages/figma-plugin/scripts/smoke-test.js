@@ -84,15 +84,18 @@ function inDependencyOrder(files) {
     files.map((file) => [file, read(`packages/figma-sync/dist/${file}`)])
   );
   const fileForSet = new Map(
-    [...specs].map(([file, spec]) => [spec.componentSet.name, file])
+    [...specs].map(([file, spec]) => [
+      `${spec.componentSet.page}|${spec.componentSet.name}`,
+      file,
+    ])
   );
   const ordered = [];
   const done = new Set();
   const visit = (file) => {
     if (done.has(file)) return;
     done.add(file);
-    for (const { name } of specs.get(file).componentSet.dependsOn ?? []) {
-      const dependency = fileForSet.get(name);
+    for (const { name, page } of specs.get(file).componentSet.dependsOn ?? []) {
+      const dependency = fileForSet.get(`${page}|${name}`);
       if (dependency) visit(dependency);
     }
     ordered.push(file);
@@ -986,10 +989,14 @@ for (const file of componentFiles) {
     );
   }
 
+  // Een onderdeel dat alleen binnen zijn component bestaat heet naar zijn
+  // BEM-element, met `__` ervoor zodat Figma het niet publiceert.
+  const { name: setName, key: setKey } = payload.componentSet;
   check(
     'de component set heet naar de CSS-klasse',
-    payload.componentSet.name.startsWith('dsn-'),
-    payload.componentSet.name
+    setName.startsWith('dsn-') ||
+      (setName.startsWith('__') && Boolean(setKey?.endsWith(setName))),
+    setKey ? `${setName} (${setKey})` : setName
   );
 
   // Een FIXED as hoort de gemeten maat te houden. Figma rekent een auto-layout
@@ -1275,11 +1282,13 @@ for (const composed of allComposed) {
     );
 
   for (const target of composed.payload.componentSet.dependsOn) {
-    const targetFile = componentFiles.find(
-      (file) =>
-        read(`packages/figma-sync/dist/${file}`).componentSet.name ===
-        target.name
-    );
+    // Op pagina én naam: `__item` staat op meer pagina's.
+    const targetFile = componentFiles.find((file) => {
+      const { componentSet } = read(`packages/figma-sync/dist/${file}`);
+      return (
+        componentSet.name === target.name && componentSet.page === target.page
+      );
+    });
     const ofTarget = () =>
       pairs().filter(({ spec }) => spec.component === target.name);
 
@@ -1375,7 +1384,7 @@ check(
 );
 check(
   'het list item staat links van de lijst',
-  first?.name === 'dsn-unordered-list-item' &&
+  first?.name === '__item' &&
     second?.name === 'dsn-unordered-list' &&
     first.x + first.width < second.x,
   listPage?.children.map((node) => `${node.name}@${node.x}`).join(', ')

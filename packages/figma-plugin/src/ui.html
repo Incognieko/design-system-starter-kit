@@ -194,15 +194,19 @@
     const bySet = new Map(
       jobs
         .filter((job) => job.kind === 'components')
-        .map((job) => [job.payload.componentSet?.name, job])
+        // Op pagina én naam: `__item` staat op meer pagina's.
+        .map((job) => [
+          `${job.payload.componentSet?.page}|${job.payload.componentSet?.name}`,
+          job,
+        ])
     );
     const ordered = [];
     const done = new Set();
     const visit = (job) => {
       if (done.has(job)) return;
       done.add(job);
-      for (const { name } of job.payload.componentSet?.dependsOn ?? []) {
-        const dependency = bySet.get(name);
+      for (const { name, page } of job.payload.componentSet?.dependsOn ?? []) {
+        const dependency = bySet.get(`${page}|${name}`);
         if (dependency) visit(dependency);
       }
       ordered.push(job);

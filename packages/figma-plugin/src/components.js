@@ -1194,7 +1194,7 @@ function axesOf(variantName) {
 }
 
 /** De ruimte tussen twee sets die op dezelfde pagina staan. */
-const PAGE_SPACING = 96;
+const PAGE_SPACING = 80;
 
 /**
  * Zet een nieuwe set of een nieuw canvasframe rechts naast wat er al op de

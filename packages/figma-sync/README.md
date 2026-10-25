@@ -568,12 +568,12 @@ pagina zetten werkt zolang het er vijf zijn; bij de volle bibliotheek is een
 pagina per component de enige indeling waarin een designer iets terugvindt
 zonder het canvas af te scrollen.
 
-Eén uitzondering: een onderdeel dat alleen in Figma een eigen set is, staat
-op de pagina van het component waar het bij hoort. De matrix zegt dat met
-`page` (`page: 'UnorderedList'` bij UnorderedListItem). De plugin zet een
-nieuwe set rechts naast wat er al op de pagina staat; het item wordt eerst
-geïmporteerd, dus het staat links en de lijst rechts. Een set die er al stond
-verplaatst hij niet.
+Eén uitzondering: een onderdeel dat alleen binnen zijn component gebruikt
+wordt, zoals het item van een lijst. Dat draagt `partOf` en staat op de
+pagina van dat component (zie "Onderdelen van een component"). De plugin zet
+een nieuwe set rechts naast wat er al op de pagina staat, met 80px ertussen;
+het item wordt eerst geïmporteerd, dus het staat links en de lijst rechts. Een
+set die er al stond verplaatst hij niet.
 
 De plugin zet de `dsn/`-pagina's daarna alfabetisch, en alleen die: pagina's
 zonder de prefix blijven staan waar de designer ze had. `dsn/Icons` schuift
@@ -942,9 +942,9 @@ dsn-heading-group"`, dus zonder override zouden Heading en HeadingGroup
   de generator zelf niet kán zien. `::file-selector-button` is het voorbeeld:
   de knop van FileInput is een pseudo-element en dus geen DOM-node, dus er valt
   niets te meten en niets in de meting valt daarover op te merken.
-- **`page`** zet de set op de pagina van een ander component. Alleen voor een
-  onderdeel dat in code geen eigen component is, zoals het item van een lijst;
-  zie "Pagina per component".
+- **`partOf`** maakt van de set een onderdeel van een ander component: hij
+  staat op de pagina daarvan en heet in Figma `__{element}`, zodat Figma hem
+  niet publiceert. Zie "Onderdelen van een component".
 - **`data-figma-marker-slot`** op een list item hangt een component property
   aan de markerlaag die de extractor tekent. Die laag heeft geen element in de
   markup, dus `data-figma-slot` kan er niet op. OrderedListItem gebruikt het
@@ -1123,18 +1123,18 @@ markering met een echt `<svg>`.
 #### Lijsten bestaan uit list items
 
 UnorderedList, OrderedList en IconList zijn elk 10 instances van één list
-item: `dsn-unordered-list-item`, `dsn-ordered-list-item` en
-`dsn-icon-list-item`. De tekst staat per item in het paneel (`label`, exposed),
+item, dat in Figma `__item` heet en op de pagina van zijn lijst staat (zie
+"Onderdelen van een component"). De tekst staat per item in het paneel (`label`, exposed),
 en een designer zet zelf de items uit die hij niet nodig heeft; booleans per
 item zijn er bewust niet. Straks vult een slot de lijst met dezelfde items
 (issue
 [#450](https://github.com/jeffreylauwers/design-system-starter-kit/issues/450)).
 
-| Item                      | Varianten       | Properties             |
-| ------------------------- | --------------- | ---------------------- |
-| `dsn-unordered-list-item` | `level` 1, 2, 3 | `label`                |
-| `dsn-ordered-list-item`   | `level` 1, 2, 3 | `label`, `number`      |
-| `dsn-icon-list-item`      | geen            | `label`, `icon` (swap) |
+| Item                                                    | Varianten       | Properties             |
+| ------------------------------------------------------- | --------------- | ---------------------- |
+| `__item` van UnorderedList (`dsn-unordered-list__item`) | `level` 1, 2, 3 | `label`                |
+| `__item` van OrderedList (`dsn-ordered-list__item`)     | `level` 1, 2, 3 | `label`, `number`      |
+| `__item` van IconList (`dsn-icon-list__item`)           | geen            | `label`, `icon` (swap) |
 
 - **Het nummer is een property.** In de browser volgt het uit de plek van het
   item; een instance weet niet waar hij staat. De OrderedList zet 1 tot en met
@@ -1350,11 +1350,7 @@ Een component overslaan is een besluit en geen achterstand, dus het staat hier
 met naam en reden.
 
 Andersom kan ook: een matrix voor iets dat in code geen eigen component is.
-Dat zijn de list items (`UnorderedListItem`, `OrderedListItem`,
-`IconListItem`). In code is een lijst een `<ul>` met kale `<li>`-elementen; in
-Figma moet hij uit instances van één item bestaan, en daar is een set voor
-nodig. Zo'n matrix draagt een `setName`, staat met `page` op de pagina van
-zijn lijst, en heeft geen entry in de manifest.
+Dat zijn de list items; zie "Onderdelen van een component".
 
 ### Layoutcomponenten
 
@@ -1402,6 +1398,39 @@ een eigen verschijning.
   componenten.
 - **Box shadows.** Die horen Figma effect styles te worden, geen variables.
   Ze staan daarom in het skip-report.
+
+## Onderdelen van een component
+
+Sommige sets bestaan alleen om in één ander component te staan. Het item van
+een lijst is het voorbeeld: in code is een lijst een `<ul>` met kale
+`<li>`-elementen, in Figma moet hij uit instances van één item bestaan, en
+daar is een set voor nodig. Een afnemer van de bibliotheek plaatst zo'n item
+nooit los; hij gebruikt de hele lijst.
+
+Zo'n matrix draagt `partOf` en een `setName` met een BEM-element:
+
+```js
+export default {
+  component: 'UnorderedListItem',
+  setName: 'dsn-unordered-list__item',
+  partOf: 'UnorderedList',
+  // ...
+};
+```
+
+Daaruit volgt de rest:
+
+- **De naam in Figma is `__item`.** Het BEM-element met `__` ervoor. Figma
+  publiceert een component waarvan de naam met `_` begint niet naar de
+  bibliotheek, dus afnemers zien hem niet in hun assets. Binnen dit bestand
+  werkt hij gewoon, en de instances in de lijst volgen hem.
+- **Hij staat op de pagina van zijn component**, links ervan.
+- **De setnaam blijft intern de sleutel.** `__item` staat op de pagina van
+  elke lijst, dus de generator wijst het item aan met de volledige naam
+  (`data-figma-instance="dsn-unordered-list__item"`), en de spec draagt die
+  als `key`. De plugin zoekt zo'n set alleen op zijn eigen pagina: op een
+  andere pagina is `__item` een ander item.
+- **Geen entry in de manifest.** Het is in code geen component.
 
 ## Wat de generator niet levert
 

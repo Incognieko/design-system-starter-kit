@@ -100,7 +100,8 @@ function loadBuiltTargets(inThisRun) {
     const spec = JSON.parse(
       fs.readFileSync(path.join(outputDir, file), 'utf8')
     );
-    const name = spec.componentSet?.name;
+    // De sleutel, niet de naam in Figma: `__item` staat op meer pagina's.
+    const name = spec.componentSet?.key ?? spec.componentSet?.name;
     if (!name || inThisRun.has(name)) continue;
     targets.set(name, targetFrom(spec));
   }
@@ -202,7 +203,10 @@ async function main() {
       targets,
     });
     // Vanaf nu kan een volgende matrix er instances van maken.
-    targets.set(spec.componentSet.name, targetFrom(spec));
+    targets.set(
+      spec.componentSet.key ?? spec.componentSet.name,
+      targetFrom(spec)
+    );
 
     const destination = path.join(outputDir, `${key}.json`);
     fs.writeFileSync(destination, `${JSON.stringify(spec, null, 2)}\n`);

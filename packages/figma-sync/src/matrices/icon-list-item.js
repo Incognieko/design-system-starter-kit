@@ -21,11 +21,12 @@ import { TEKST } from '../text.js';
 
 export default {
   component: 'IconListItem',
-  setName: 'dsn-icon-list-item',
+  setName: 'dsn-icon-list__item',
 
-  // Op de pagina van de lijst, links van de lijst zelf: het item hoort bij de
-  // lijst en is in code geen eigen component.
-  page: 'IconList',
+  // Hoort bij de lijst en wordt nooit los geplaatst. Daarom staat het op de
+  // pagina van de lijst, links ervan, en heet het in Figma `__item`: met de
+  // underscore ervoor publiceert Figma het niet naar de bibliotheek.
+  partOf: 'IconList',
 
   fonts: [
     'https://fonts.googleapis.com/css2?family=Fira+Sans:wght@400;700&display=swap',

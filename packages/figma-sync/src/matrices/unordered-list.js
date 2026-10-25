@@ -1,8 +1,8 @@
 /**
  * Variant-matrix voor UnorderedList.
  *
- * Een lijst van 10 instances van `dsn-unordered-list-item`, alle tien op
- * hetzelfde item. Een designer vult de tekst per item in het paneel in en zet
+ * Een lijst van 10 instances van `__item` (`dsn-unordered-list__item`), alle
+ * tien op hetzelfde item. Een designer vult de tekst per item in het paneel in en zet
  * de items uit die hij niet nodig heeft; booleans per item zijn er bewust niet.
  * Straks bepaalt een slot het aantal (issue #450), en dan vult de designer dat
  * slot met dezelfde items.
@@ -40,7 +40,7 @@ export default {
     const items = Array.from(
       { length: ITEM_COUNT },
       () =>
-        `<li data-figma-instance="dsn-unordered-list-item"><span data-figma-slot="label">${TEKST}</span></li>`
+        `<li data-figma-instance="dsn-unordered-list__item"><span data-figma-slot="label">${TEKST}</span></li>`
     ).join('');
 
     return `<ul class="dsn-unordered-list" data-figma-root>${items}</ul>`;
