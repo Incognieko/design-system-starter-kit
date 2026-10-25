@@ -23,6 +23,10 @@ export default {
   component: 'IconListItem',
   setName: 'dsn-icon-list-item',
 
+  // Op de pagina van de lijst, links van de lijst zelf: het item hoort bij de
+  // lijst en is in code geen eigen component.
+  page: 'IconList',
+
   fonts: [
     'https://fonts.googleapis.com/css2?family=Fira+Sans:wght@400;700&display=swap',
   ],

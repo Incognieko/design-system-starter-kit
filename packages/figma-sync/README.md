@@ -568,6 +568,13 @@ pagina zetten werkt zolang het er vijf zijn; bij de volle bibliotheek is een
 pagina per component de enige indeling waarin een designer iets terugvindt
 zonder het canvas af te scrollen.
 
+Eén uitzondering: een onderdeel dat alleen in Figma een eigen set is, staat
+op de pagina van het component waar het bij hoort. De matrix zegt dat met
+`page` (`page: 'UnorderedList'` bij UnorderedListItem). De plugin zet een
+nieuwe set rechts naast wat er al op de pagina staat; het item wordt eerst
+geïmporteerd, dus het staat links en de lijst rechts. Een set die er al stond
+verplaatst hij niet.
+
 De plugin zet de `dsn/`-pagina's daarna alfabetisch, en alleen die: pagina's
 zonder de prefix blijven staan waar de designer ze had. `dsn/Icons` schuift
 gewoon mee in die volgorde.
@@ -935,6 +942,9 @@ dsn-heading-group"`, dus zonder override zouden Heading en HeadingGroup
   de generator zelf niet kán zien. `::file-selector-button` is het voorbeeld:
   de knop van FileInput is een pseudo-element en dus geen DOM-node, dus er valt
   niets te meten en niets in de meting valt daarover op te merken.
+- **`page`** zet de set op de pagina van een ander component. Alleen voor een
+  onderdeel dat in code geen eigen component is, zoals het item van een lijst;
+  zie "Pagina per component".
 - **`data-figma-marker-slot`** op een list item hangt een component property
   aan de markerlaag die de extractor tekent. Die laag heeft geen element in de
   markup, dus `data-figma-slot` kan er niet op. OrderedListItem gebruikt het
@@ -1088,10 +1098,21 @@ li                    HORIZONTAL
   gemeten, zodat elk item dezelfde waarde heeft en een instance geen override
   krijgt alleen omdat "1." en "2." anders kernen.
 - **Een genest item draagt de inspringing van de lijsten erboven.** Een matrix
-  die een geneste lijst rendert en het diepste item meet, krijgt per niveau
-  een lege laag `indent` vóór de marker, met het padding-token van die lijst.
-  Zo'n laag hugt om zijn padding, dus hij volgt het token. Zo komt `level` bij
-  UnorderedListItem en OrderedListItem tot stand.
+  die een geneste lijst rendert en het diepste item meet, krijgt die
+  inspringing als padding, met het padding-token van elke lijst. Het eerste
+  niveau erboven is de padding van het item zelf; elk volgend niveau is een
+  frame `indent` om marker en tekst heen. Zo komt `level` bij
+  UnorderedListItem en OrderedListItem tot stand:
+
+  ```
+  level=1   li                      [marker] [Tekst]
+  level=2   li (padding)            [marker] [Tekst]
+  level=3   li (padding) > indent (padding) > [marker] [Tekst]
+  ```
+
+  Bewust geen lege laag die alleen uit padding bestaat. Zo'n laag kan in Figma
+  niet om zijn padding huggen en bleef op de standaardmaat van 100 bij 100
+  staan. Een frame met inhoud hugt wel, en volgt dus het token.
 
 Dit geldt voor elke `<li>` met een marker, niet alleen voor de lijsten zelf:
 TableOfContents en PageFooter hebben er ook bolletjes door gekregen.
@@ -1332,7 +1353,8 @@ Andersom kan ook: een matrix voor iets dat in code geen eigen component is.
 Dat zijn de list items (`UnorderedListItem`, `OrderedListItem`,
 `IconListItem`). In code is een lijst een `<ul>` met kale `<li>`-elementen; in
 Figma moet hij uit instances van één item bestaan, en daar is een set voor
-nodig. Zo'n matrix draagt een `setName` en heeft geen entry in de manifest.
+nodig. Zo'n matrix draagt een `setName`, staat met `page` op de pagina van
+zijn lijst, en heeft geen entry in de manifest.
 
 ### Layoutcomponenten
 

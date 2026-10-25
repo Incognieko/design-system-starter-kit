@@ -1181,12 +1181,7 @@ function convertElement(
 
   // HUG zonder iets om naar te huggen klapt in tot 0. Een DotBadge is een lege
   // stip, en de wrapper van Popover heeft alleen een absoluut kind.
-  //
-  // Behalve de inspringing van een genest list item: dat is een lege laag
-  // waarvan de breedte de padding ís. Op HUG volgt hij het token; op een vaste
-  // breedte niet.
-  const canHug =
-    hasAutoLayout && (lastInFlowIndex >= 0 || node.synthetic === 'indent');
+  const canHug = hasAutoLayout && lastInFlowIndex >= 0;
 
   figmaNode.layoutSizingHorizontal =
     canHug && shrinkWraps && !fixedWidth ? 'HUG' : 'FIXED';
@@ -1777,8 +1772,10 @@ export function toComponentSet(
     generatedAt: new Date().toISOString(),
     componentSet: {
       // Eén pagina per component; de plugin maakt hem aan en zet de
-      // `dsn/`-pagina's daarna alfabetisch.
-      page: pageNameFor(matrix.component),
+      // `dsn/`-pagina's daarna alfabetisch. Een onderdeel dat alleen in Figma
+      // een eigen set is (het item van een lijst) staat met `page` op de
+      // pagina van het component waar het bij hoort.
+      page: pageNameFor(matrix.page ?? matrix.component),
       canvas,
       name: setName,
       // De sets die er al moeten staan voordat deze geïmporteerd kan worden:

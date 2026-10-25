@@ -12,9 +12,10 @@
  * lijsten" in de README.
  *
  * `level` is de geneste weergave. De matrix rendert een echt geneste lijst en
- * meet het diepste item; de inspringing van de lijsten erboven komt als lege
- * laag vóór de marker, elk met het padding-token van zijn lijst. Het bolletje
- * blijft op elk niveau een `disc`, want zo zet de CSS het.
+ * meet het diepste item; de inspringing van de lijsten erboven wordt padding,
+ * elk met het padding-token van zijn lijst: op het item zelf, en vanaf niveau
+ * 3 op een frame `indent` om marker en tekst heen. Het bolletje blijft op elk
+ * niveau een `disc`, want zo zet de CSS het.
  */
 
 import { TEKST } from '../text.js';
@@ -22,6 +23,10 @@ import { TEKST } from '../text.js';
 export default {
   component: 'UnorderedListItem',
   setName: 'dsn-unordered-list-item',
+
+  // Op de pagina van de lijst, links van de lijst zelf: het item hoort bij de
+  // lijst en is in code geen eigen component.
+  page: 'UnorderedList',
 
   fonts: [
     'https://fonts.googleapis.com/css2?family=Fira+Sans:wght@400;700&display=swap',

@@ -1347,6 +1347,40 @@ check(
   managed.join(', ')
 );
 
+// Een lijst en zijn item delen een pagina. Zonder plaatsing kwamen ze allebei
+// op 0,0 terecht, over elkaar heen.
+const shared = state.root.children.filter(
+  (page) => page.name.startsWith('dsn/') && page.children.length > 1
+);
+const overlapping = shared.filter((page) =>
+  page.children.some((a, i) =>
+    page.children.some(
+      (b, j) =>
+        i < j &&
+        a.x < b.x + b.width &&
+        b.x < a.x + a.width &&
+        a.y < b.y + b.height &&
+        b.y < a.y + a.height
+    )
+  )
+);
+const listPage = shared.find((page) => page.name === 'dsn/UnorderedList');
+const [first, second] = listPage?.children ?? [];
+check(
+  'sets op dezelfde pagina staan naast elkaar, niet over elkaar',
+  shared.length > 0 && overlapping.length === 0,
+  overlapping.length
+    ? overlapping.map((page) => page.name).join(', ')
+    : shared.map((page) => page.name).join(', ')
+);
+check(
+  'het list item staat links van de lijst',
+  first?.name === 'dsn-unordered-list-item' &&
+    second?.name === 'dsn-unordered-list' &&
+    first.x + first.width < second.x,
+  listPage?.children.map((node) => `${node.name}@${node.x}`).join(', ')
+);
+
 // De pagina's van de designer horen te blijven staan waar ze stonden: een
 // plugin die de hele lijst herschikt gooit een indeling om die met de hand is
 // gemaakt.

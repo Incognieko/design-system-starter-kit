@@ -437,34 +437,12 @@ function domWalker([properties, hiddenClass]) {
     const parentTokens = window.__dsnReadTokenSources(element.parentElement);
 
     const x = node.rect.x - total;
-    const indentNodes = before.map((width, index) => {
-      // De lijst waar dit niveau in staat; zijn padding is de inspringing.
-      const level = ancestorItems(element)[index];
-      const tokens = window.__dsnReadTokenSources(level.parentElement);
-      const start = x + before.slice(0, index).reduce((s, v) => s + v, 0);
-      return {
-        tag: 'indent',
-        classes: [],
-        synthetic: 'indent',
-        rect: {
-          x: round(start),
-          y: node.rect.y,
-          width: round(width),
-          height: 0,
-        },
-        styles: neutralStyles(node.styles, {
-          display: 'inline-block',
-          paddingLeft: `${width}px`,
-        }),
-        tokens: tokens['padding-left']
-          ? { 'padding-left': tokens['padding-left'] }
-          : {},
-        slot: null,
-        instance: null,
-        instanceVariant: null,
-        children: [],
-      };
-    });
+    const ancestors = ancestorItems(element);
+    // Het padding-token van de lijst waar het item op niveau `index` in staat.
+    const indentToken = (index) =>
+      window.__dsnReadTokenSources(ancestors[index].parentElement)[
+        'padding-left'
+      ];
 
     const marker = {
       tag: 'marker',
@@ -529,8 +507,9 @@ function domWalker([properties, hiddenClass]) {
           ]
         : node.children;
 
-    node.styles = {
-      ...node.styles,
+    // Een rij: marker en inhoud naast elkaar, bovenaan uitgelijnd zodat de
+    // marker bij de eerste regel blijft.
+    const row = {
       display: 'flex',
       flexDirection: 'row',
       flexWrap: 'nowrap',
@@ -540,12 +519,55 @@ function domWalker([properties, hiddenClass]) {
       rowGap: '0px',
       columnGap: '0px',
     };
+
+    // De inspringing van de lijsten erboven. De eerste is de padding van het
+    // item zelf; elk volgend niveau is een frame om marker en inhoud heen, met
+    // de padding van zijn lijst. Zo staat elk niveau aan zijn eigen token, en
+    // heeft elke laag inhoud om om te huggen: een lege laag die alleen uit
+    // padding bestaat hugt in Figma niet, en bleef daar 100 bij 100.
+    let children = [marker, ...content];
+    for (let index = before.length - 1; index >= 1; index -= 1) {
+      const start = x + before.slice(0, index).reduce((s, v) => s + v, 0);
+      const token = indentToken(index);
+      children = [
+        {
+          tag: 'indent',
+          classes: [],
+          synthetic: 'indent',
+          rect: {
+            x: round(start),
+            y: node.rect.y,
+            width: round(x + node.rect.width + total - start),
+            height: node.rect.height,
+          },
+          styles: neutralStyles(node.styles, {
+            ...row,
+            flexGrow: '1',
+            paddingLeft: `${before[index]}px`,
+          }),
+          tokens: token ? { 'padding-left': token } : {},
+          slot: null,
+          instance: null,
+          instanceVariant: null,
+          children,
+        },
+      ];
+    }
+
+    node.styles = { ...node.styles, ...row };
     node.rect = {
       ...node.rect,
       x: round(x),
       width: round(node.rect.width + total),
     };
-    node.children = [...indentNodes, marker, ...content];
+    if (before.length) {
+      const token = indentToken(0);
+      node.styles.paddingLeft = `${before[0]}px`;
+      node.tokens = { ...node.tokens };
+      if (token) node.tokens['padding-left'] = token;
+      else delete node.tokens['padding-left'];
+    }
+    node.children = children;
     node.drawsMarker = true;
   };
 

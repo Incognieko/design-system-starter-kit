@@ -1193,6 +1193,30 @@ function axesOf(variantName) {
     .filter(Boolean);
 }
 
+/** De ruimte tussen twee sets die op dezelfde pagina staan. */
+const PAGE_SPACING = 96;
+
+/**
+ * Zet een nieuwe set of een nieuw canvasframe rechts naast wat er al op de
+ * pagina staat.
+ *
+ * Normaal staat er één set per pagina, en dan maakt de plek niet uit. Het item
+ * van een lijst staat op de pagina van die lijst (`page` in de matrix), en
+ * zonder deze stap kwamen beide op 0,0, over elkaar heen. De items worden eerst
+ * geïmporteerd (ze zijn een afhankelijkheid), dus het item staat links en de
+ * lijst rechts.
+ *
+ * Alleen bij het aanmaken. Een bestaande set blijft waar de designer hem
+ * neerzette.
+ */
+function placeBesideOthers(page, node) {
+  const others = page.children.filter((child) => child !== node);
+  if (!others.length) return;
+  node.x =
+    Math.max(...others.map((child) => child.x + child.width)) + PAGE_SPACING;
+  node.y = Math.min(...others.map((child) => child.y));
+}
+
 function findOrCreateCanvasFrame(page, name) {
   const existing = page.children.find(
     (node) => node.type === 'FRAME' && node.name === name
@@ -1202,6 +1226,7 @@ function findOrCreateCanvasFrame(page, name) {
   const frame = figma.createFrame();
   frame.name = name;
   page.appendChild(frame);
+  placeBesideOthers(page, frame);
   return frame;
 }
 
@@ -1461,6 +1486,7 @@ export async function importComponentSet(payload, log, options = {}) {
     try {
       set = figma.combineAsVariants(components, page);
       set.name = spec.name;
+      placeBesideOthers(page, set);
     } catch (error) {
       log.error(
         `Component set "${spec.name}" kon niet gecombineerd worden: ${error.message}. De losse varianten staan wel op de pagina.`
