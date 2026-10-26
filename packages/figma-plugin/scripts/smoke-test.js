@@ -84,15 +84,18 @@ function inDependencyOrder(files) {
     files.map((file) => [file, read(`packages/figma-sync/dist/${file}`)])
   );
   const fileForSet = new Map(
-    [...specs].map(([file, spec]) => [spec.componentSet.name, file])
+    [...specs].map(([file, spec]) => [
+      `${spec.componentSet.page}|${spec.componentSet.name}`,
+      file,
+    ])
   );
   const ordered = [];
   const done = new Set();
   const visit = (file) => {
     if (done.has(file)) return;
     done.add(file);
-    for (const { name } of specs.get(file).componentSet.dependsOn ?? []) {
-      const dependency = fileForSet.get(name);
+    for (const { name, page } of specs.get(file).componentSet.dependsOn ?? []) {
+      const dependency = fileForSet.get(`${page}|${name}`);
       if (dependency) visit(dependency);
     }
     ordered.push(file);
@@ -951,6 +954,16 @@ for (const file of componentFiles) {
             `${spec.name} > ${override.path}: ${layer.layoutSizingHorizontal} i.p.v. ${override.layoutSizingHorizontal}`
           );
         }
+        // Een andere tekst in de instance, zoals het nummer van elk item in
+        // een OrderedList. Die moet op de laag staan, niet alleen in de spec.
+        if (
+          override.characters !== undefined &&
+          layer.characters !== override.characters
+        ) {
+          wrongOverrides.push(
+            `${spec.name} > ${override.path}: tekst "${layer.characters}" i.p.v. "${override.characters}"`
+          );
+        }
         for (const [field, reference] of Object.entries(
           override.boundVariables ?? {}
         )) {
@@ -976,10 +989,14 @@ for (const file of componentFiles) {
     );
   }
 
+  // Een onderdeel dat alleen binnen zijn component bestaat heet naar zijn
+  // BEM-element, met `__` ervoor zodat Figma het niet publiceert.
+  const { name: setName, key: setKey } = payload.componentSet;
   check(
     'de component set heet naar de CSS-klasse',
-    payload.componentSet.name.startsWith('dsn-'),
-    payload.componentSet.name
+    setName.startsWith('dsn-') ||
+      (setName.startsWith('__') && Boolean(setKey?.endsWith(setName))),
+    setKey ? `${setName} (${setKey})` : setName
   );
 
   // Een FIXED as hoort de gemeten maat te houden. Figma rekent een auto-layout
@@ -1265,11 +1282,13 @@ for (const composed of allComposed) {
     );
 
   for (const target of composed.payload.componentSet.dependsOn) {
-    const targetFile = componentFiles.find(
-      (file) =>
-        read(`packages/figma-sync/dist/${file}`).componentSet.name ===
-        target.name
-    );
+    // Op pagina én naam: `__item` staat op meer pagina's.
+    const targetFile = componentFiles.find((file) => {
+      const { componentSet } = read(`packages/figma-sync/dist/${file}`);
+      return (
+        componentSet.name === target.name && componentSet.page === target.page
+      );
+    });
     const ofTarget = () =>
       pairs().filter(({ spec }) => spec.component === target.name);
 
@@ -1335,6 +1354,40 @@ check(
   'de dsn-paginas staan alfabetisch',
   managed.join('|') === alphabetical.join('|'),
   managed.join(', ')
+);
+
+// Een lijst en zijn item delen een pagina. Zonder plaatsing kwamen ze allebei
+// op 0,0 terecht, over elkaar heen.
+const shared = state.root.children.filter(
+  (page) => page.name.startsWith('dsn/') && page.children.length > 1
+);
+const overlapping = shared.filter((page) =>
+  page.children.some((a, i) =>
+    page.children.some(
+      (b, j) =>
+        i < j &&
+        a.x < b.x + b.width &&
+        b.x < a.x + a.width &&
+        a.y < b.y + b.height &&
+        b.y < a.y + a.height
+    )
+  )
+);
+const listPage = shared.find((page) => page.name === 'dsn/UnorderedList');
+const [first, second] = listPage?.children ?? [];
+check(
+  'sets op dezelfde pagina staan naast elkaar, niet over elkaar',
+  shared.length > 0 && overlapping.length === 0,
+  overlapping.length
+    ? overlapping.map((page) => page.name).join(', ')
+    : shared.map((page) => page.name).join(', ')
+);
+check(
+  'het list item staat links van de lijst',
+  first?.name === '__item' &&
+    second?.name === 'dsn-unordered-list' &&
+    first.x + first.width < second.x,
+  listPage?.children.map((node) => `${node.name}@${node.x}`).join(', ')
 );
 
 // De pagina's van de designer horen te blijven staan waar ze stonden: een

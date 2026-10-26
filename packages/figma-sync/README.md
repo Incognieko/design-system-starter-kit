@@ -568,6 +568,13 @@ pagina zetten werkt zolang het er vijf zijn; bij de volle bibliotheek is een
 pagina per component de enige indeling waarin een designer iets terugvindt
 zonder het canvas af te scrollen.
 
+Eén uitzondering: een onderdeel dat alleen binnen zijn component gebruikt
+wordt, zoals het item van een lijst. Dat draagt `partOf` en staat op de
+pagina van dat component (zie "Onderdelen van een component"). De plugin zet
+een nieuwe set rechts naast wat er al op de pagina staat, met 80px ertussen;
+het item wordt eerst geïmporteerd, dus het staat links en de lijst rechts. Een
+set die er al stond verplaatst hij niet.
+
 De plugin zet de `dsn/`-pagina's daarna alfabetisch, en alleen die: pagina's
 zonder de prefix blijven staan waar de designer ze had. `dsn/Icons` schuift
 gewoon mee in die volgorde.
@@ -808,8 +815,8 @@ worden:
 
 Dat staat ook in de spec, als `instanceCandidates`. Zo kan het patroon per
 component aan, en is in Figma te bevestigen dat het werkt voordat de hele
-bibliotheek omgaat. HeadingGroup, Alert, Note, FormField, ModalDialog en de
-ketens van Checkbox en Radio (Option en Group) staan erop.
+bibliotheek omgaat. HeadingGroup, Alert, Note, FormField, ModalDialog, de
+drie lijsten en de ketens van Checkbox en Radio (Option en Group) staan erop.
 
 **De matrix rendert de opbouw van het component, niet een kortere versie.**
 FormFieldLabel heeft in zijn eigen set een suffix-laag die via `showSuffix`
@@ -932,10 +939,16 @@ dsn-heading-group"`, dus zonder override zouden Heading en HeadingGroup
 - **`instances: true`** maakt van geneste componenten instances in plaats van
   gemeten lagen; zie "Geneste componenten worden instances".
 - **`warnings`** zet een vaste waarschuwing in de spec, voor een beperking die
-  de generator zelf niet kán zien. `::marker` is het voorbeeld: de bolletjes van
-  een UnorderedList zijn een pseudo-element en dus geen DOM-node, dus er valt
-  niets te meten en niets in de meting valt daarover op te merken. Wat er wél
-  in Figma landt is de typografie, de inspringing en de afstand tussen items.
+  de generator zelf niet kán zien. `::file-selector-button` is het voorbeeld:
+  de knop van FileInput is een pseudo-element en dus geen DOM-node, dus er valt
+  niets te meten en niets in de meting valt daarover op te merken.
+- **`partOf`** maakt van de set een onderdeel van een ander component: hij
+  staat op de pagina daarvan en heet in Figma `__{element}`, zodat Figma hem
+  niet publiceert. Zie "Onderdelen van een component".
+- **`data-figma-marker-slot`** op een list item hangt een component property
+  aan de markerlaag die de extractor tekent. Die laag heeft geen element in de
+  markup, dus `data-figma-slot` kan er niet op. OrderedListItem gebruikt het
+  voor `number`; zie "Markers van lijsten".
 
 ## Component properties
 
@@ -1042,20 +1055,102 @@ padding-left  de waarde van het token (55) wijkt af van de gemeten 44 (search-in
 Dit hoort bij issue #328. Zolang die openstaat is het geen regressie maar een
 bekende post.
 
-### Pseudo-elementen komen nooit mee
+### Pseudo-elementen komen niet mee, op `::marker` na
 
-De extractor loopt de DOM af, en een pseudo-element is geen DOM-node. Dat raakt
-drie plekken, en op alle drie staat het als vaste `warnings`-regel in de matrix
-in plaats van dat het stil blijft:
+De extractor loopt de DOM af, en een pseudo-element is geen DOM-node. Op twee
+plekken staat dat als vaste `warnings`-regel in de matrix, in plaats van dat
+het stil blijft:
 
-| Pseudo-element           | Component                  | Wat ontbreekt             |
-| ------------------------ | -------------------------- | ------------------------- |
-| `::marker`               | UnorderedList, OrderedList | bolletjes en nummers      |
-| `::file-selector-button` | FileInput                  | de knop "Bestand kiezen"  |
-| `::backdrop`             | ModalDialog, Drawer        | de verduistering erachter |
+| Pseudo-element           | Component           | Wat ontbreekt             |
+| ------------------------ | ------------------- | ------------------------- |
+| `::file-selector-button` | FileInput           | de knop "Bestand kiezen"  |
+| `::backdrop`             | ModalDialog, Drawer | de verduistering erachter |
 
-`IconList` laat zien wat het alternatief is: die zet `list-style: none` en
-tekent zijn markering met een echt `<svg>`, en komt daardoor wel volledig over.
+`::marker` was de derde. Die tekent de extractor nu zelf als laag, omdat een
+marker één teken is dat uit de computed style en de positie van het item volgt;
+zie "Markers van lijsten". Een knop met een eigen rand en padding of een
+verduistering over het hele viewport valt zo niet na te tekenen.
+
+### Markers van lijsten
+
+Een `<li>` met een bolletje of nummer heeft in de DOM geen element voor dat
+teken: het is `::marker`. `getComputedStyle(li, '::marker')` geeft wel de kleur
+en de maat, en de tokenlezer kent de regel `.dsn-unordered-list ::marker`. De
+extractor maakt daaruit een laag, en het item wordt in Figma een rij:
+
+```
+li                    HORIZONTAL
+├── marker            HUG, minWidth = inspringing van de lijst, rechts uitgelijnd
+│   └── Tekst "1."    kleur gebonden aan ordered-list/marker-color
+└── Tekst "Tekst"     FILL
+```
+
+- **De inspringing verhuist naar het item.** In de browser staat de marker in
+  de `padding-inline-start` van de lijst. In Figma is die padding de `minWidth`
+  van de markerkolom, met hetzelfde token, en heeft de lijst zelf geen padding
+  meer. Anders sprong alles twee keer in.
+- **Het teken komt uit `list-style-type`.** `content` geeft voor een marker
+  alleen `normal` terug. `disc` wordt `•`, `decimal` het rangnummer met een
+  punt, en `start`, `reversed` en `value` tellen mee zoals in de browser. Een
+  type dat de generator niet kent levert een melding op, geen verzonnen teken.
+- **De spatie na het teken is padding.** De browser zet het teken plus een
+  spatie tegen de tekst. Die spatie is de `paddingRight` van de kolom, los
+  gemeten, zodat elk item dezelfde waarde heeft en een instance geen override
+  krijgt alleen omdat "1." en "2." anders kernen.
+- **Een genest item draagt de inspringing van de lijsten erboven.** Een matrix
+  die een geneste lijst rendert en het diepste item meet, krijgt die
+  inspringing als padding, met het padding-token van elke lijst. Het eerste
+  niveau erboven is de padding van het item zelf; elk volgend niveau is een
+  frame `indent` om marker en tekst heen. Zo komt `level` bij
+  UnorderedListItem en OrderedListItem tot stand:
+
+  ```
+  level=1   li                      [marker] [Tekst]
+  level=2   li (padding)            [marker] [Tekst]
+  level=3   li (padding) > indent (padding) > [marker] [Tekst]
+  ```
+
+  Bewust geen lege laag die alleen uit padding bestaat. Zo'n laag kan in Figma
+  niet om zijn padding huggen en bleef op de standaardmaat van 100 bij 100
+  staan. Een frame met inhoud hugt wel, en volgt dus het token.
+
+Dit geldt voor elke `<li>` met een marker, niet alleen voor de lijsten zelf:
+TableOfContents en PageFooter hebben er ook bolletjes door gekregen.
+
+`IconList` gebruikt dit niet. Die zet `list-style: none` en tekent zijn
+markering met een echt `<svg>`.
+
+#### Lijsten bestaan uit list items
+
+UnorderedList, OrderedList en IconList zijn elk 10 instances van één list
+item, dat in Figma `__item` heet en op de pagina van zijn lijst staat (zie
+"Onderdelen van een component"). De tekst staat per item in het paneel (`label`, exposed),
+en een designer zet zelf de items uit die hij niet nodig heeft; booleans per
+item zijn er bewust niet. Straks vult een slot de lijst met dezelfde items
+(issue
+[#450](https://github.com/jeffreylauwers/design-system-starter-kit/issues/450)).
+
+| Item                                                    | Varianten       | Properties             |
+| ------------------------------------------------------- | --------------- | ---------------------- |
+| `__item` van UnorderedList (`dsn-unordered-list__item`) | `level` 1, 2, 3 | `label`                |
+| `__item` van OrderedList (`dsn-ordered-list__item`)     | `level` 1, 2, 3 | `label`, `number`      |
+| `__item` van IconList (`dsn-icon-list__item`)           | geen            | `label`, `icon` (swap) |
+
+- **Het nummer is een property.** In de browser volgt het uit de plek van het
+  item; een instance weet niet waar hij staat. De OrderedList zet 1 tot en met
+  10 neer, als override op de markerlaag. Wie een item uitzet, nummert zelf
+  door.
+- **Het icoon van IconList is een swap, geen as.** Welk icoon er staat
+  verandert geen token, alleen welke laag er staat. De `icon`-as die IconList
+  had is daarmee weg.
+- **Een geneste OrderedList begint weer bij 1.** Zo zet de CSS het: elk niveau
+  heeft zijn eigen `decimal`-teller. `level` verandert dus alleen de
+  inspringing, ook bij UnorderedList, waar het bolletje op elk niveau `disc`
+  blijft.
+
+Een item is geen `cssBlock` uit de manifest (een kale `<li>`, of bij IconList
+het BEM-element `dsn-icon-list__item`), dus de generator herkent hem niet
+vanzelf. `data-figma-instance` wijst hem aan.
 
 ### Disabled en invalid zijn eigen assen
 
@@ -1254,6 +1349,9 @@ staan.
 Een component overslaan is een besluit en geen achterstand, dus het staat hier
 met naam en reden.
 
+Andersom kan ook: een matrix voor iets dat in code geen eigen component is.
+Dat zijn de list items; zie "Onderdelen van een component".
+
 ### Layoutcomponenten
 
 `ActionGroup`, `BreakoutSection`, `Container`, `Grid`, `PageBody`,
@@ -1300,6 +1398,39 @@ een eigen verschijning.
   componenten.
 - **Box shadows.** Die horen Figma effect styles te worden, geen variables.
   Ze staan daarom in het skip-report.
+
+## Onderdelen van een component
+
+Sommige sets bestaan alleen om in één ander component te staan. Het item van
+een lijst is het voorbeeld: in code is een lijst een `<ul>` met kale
+`<li>`-elementen, in Figma moet hij uit instances van één item bestaan, en
+daar is een set voor nodig. Een afnemer van de bibliotheek plaatst zo'n item
+nooit los; hij gebruikt de hele lijst.
+
+Zo'n matrix draagt `partOf` en een `setName` met een BEM-element:
+
+```js
+export default {
+  component: 'UnorderedListItem',
+  setName: 'dsn-unordered-list__item',
+  partOf: 'UnorderedList',
+  // ...
+};
+```
+
+Daaruit volgt de rest:
+
+- **De naam in Figma is `__item`.** Het BEM-element met `__` ervoor. Figma
+  publiceert een component waarvan de naam met `_` begint niet naar de
+  bibliotheek, dus afnemers zien hem niet in hun assets. Binnen dit bestand
+  werkt hij gewoon, en de instances in de lijst volgen hem.
+- **Hij staat op de pagina van zijn component**, links ervan.
+- **De setnaam blijft intern de sleutel.** `__item` staat op de pagina van
+  elke lijst, dus de generator wijst het item aan met de volledige naam
+  (`data-figma-instance="dsn-unordered-list__item"`), en de spec draagt die
+  als `key`. De plugin zoekt zo'n set alleen op zijn eigen pagina: op een
+  andere pagina is `__item` een ander item.
+- **Geen entry in de manifest.** Het is in code geen component.
 
 ## Wat de generator niet levert
 

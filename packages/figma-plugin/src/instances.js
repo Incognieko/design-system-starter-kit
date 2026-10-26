@@ -20,9 +20,14 @@ function findTarget(name, pageName) {
   const pages = figma.root.children.filter((page) => page.type === 'PAGE');
   // Eerst de pagina die de generator noemt; staat de set daar niet, dan elke
   // andere pagina. Een designer mag een set verplaatst hebben.
+  //
+  // Behalve een onderdeel als `__item`: die naam staat op de pagina van elke
+  // lijst, dus op een andere pagina is het een ander item.
   const ordered = [
     ...pages.filter((page) => page.name === pageName),
-    ...pages.filter((page) => page.name !== pageName),
+    ...(name.startsWith('_')
+      ? []
+      : pages.filter((page) => page.name !== pageName)),
   ];
 
   for (const page of ordered) {
